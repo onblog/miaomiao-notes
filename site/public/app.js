@@ -108,7 +108,7 @@ const messages = {
     'hero.desc': '笔记就是 iCloud Drive 里的普通 .md 文件，多台 Mac 自动同步。完全免费，不需要登录。',
     'download.arm64': '下载 Apple Silicon 版',
     'download.x64': '下载 Intel 版',
-    'download.hint': 'macOS 12 及以上 · 首次打开请右键点击应用选择「打开」，之后即可正常双击启动',
+    'download.hint': 'macOS 12 及以上 · 首次打开若被系统拦住：系统设置 → 隐私与安全性 →「仍要打开」',
     'download.latest': '最新版本',
     'download.direct': '直接下载',
     'download.preparing': '准备中…',
@@ -119,6 +119,19 @@ const messages = {
     'download.cancel': '取消',
     'download.retry': '重试',
     'download.unavailable': '安装包还在上传，稍后再来',
+
+    'gk.title': '首次打开需要允许一次',
+    'gk.intro':
+      '下载完成。应用不是从 App Store 安装的，macOS 第一次会拦下它——这是正常现象，放行一次即可。',
+    'gk.step1':
+      '把「喵喵笔记.app」拖进「应用程序」，双击打开；看到「未打开」的提示时点「完成」。',
+    'gk.step2':
+      '打开「系统设置 → 隐私与安全性」，在「安全性」区域找到被阻止的应用，点「仍要打开」。',
+    'gk.step3': '输入 Mac 密码或使用触控 ID，之后就能正常双击打开。',
+    'gk.note': '如果系统提示「已损坏」，在「终端」里执行一次：',
+    'gk.copy': '复制',
+    'gk.copied': '已复制',
+    'gk.ok': '我知道了',
     'feature.layout.title': '三栏布局',
     'feature.layout.desc': '文件夹、笔记、内容三列，参考 macOS 备忘录的交互，切换笔记不丢光标位置。',
     'feature.files.title': '笔记就是文件',
@@ -143,7 +156,7 @@ const messages = {
     'download.arm64': 'Download for Apple Silicon',
     'download.x64': 'Download for Intel',
     'download.hint':
-      'macOS 12 or later · first launch: right-click the app and choose Open',
+      'macOS 12 or later · if the first launch is blocked: System Settings → Privacy & Security → Open Anyway',
     'download.latest': 'Latest',
     'download.direct': 'Direct download',
     'download.preparing': 'Preparing…',
@@ -154,6 +167,19 @@ const messages = {
     'download.cancel': 'Cancel',
     'download.retry': 'Retry',
     'download.unavailable': 'The build is still uploading, check back soon',
+
+    'gk.title': 'Allow it once on first launch',
+    'gk.intro':
+      'Download complete. The app is not distributed through the App Store, so macOS blocks it once — that is expected. Allow it and it opens normally from then on.',
+    'gk.step1':
+      'Drag “喵喵笔记.app” into Applications and double-click it. When macOS says it cannot verify the app, choose “Done”.',
+    'gk.step2':
+      'Open System Settings → Privacy & Security. In the Security section, find the blocked app and choose “Open Anyway”.',
+    'gk.step3': 'Enter your Mac password or use Touch ID. The app opens normally afterwards.',
+    'gk.note': 'If macOS reports the app is damaged, run this once in Terminal:',
+    'gk.copy': 'Copy',
+    'gk.copied': 'Copied',
+    'gk.ok': 'Got it',
     'feature.layout.title': 'Three columns',
     'feature.layout.desc':
       'Folders, notes and content — modelled on Apple Notes, and switching notes keeps your place.',
@@ -354,6 +380,9 @@ async function handleDownload(arch) {
     dlEl('dl-title').textContent = messages[currentLang]['download.done'];
     setTimeout(closeDownloadPanel, 1400);
     showToast(`${file.name} · ${messages[currentLang]['download.saved']}`);
+    // macOS blocks the first launch of a non-notarized build; explain the allow
+    // steps once the download panel has closed, so nobody gets stuck.
+    setTimeout(showGatekeeper, 1600);
   } catch (error) {
     if (error.name === 'AbortError') {
       closeDownloadPanel();
@@ -371,6 +400,48 @@ async function handleDownload(arch) {
   }
 }
 
+/* ---------- 首次打开说明（未公证应用） ---------- */
+
+function showGatekeeper() {
+  const modal = dlEl('gk');
+  if (!modal) return;
+  modal.hidden = false;
+  dlEl('gk-ok')?.focus();
+}
+
+function closeGatekeeper() {
+  const modal = dlEl('gk');
+  if (modal) modal.hidden = true;
+}
+
+function initGatekeeper() {
+  const modal = dlEl('gk');
+  if (!modal) return;
+
+  dlEl('gk-ok')?.addEventListener('click', closeGatekeeper);
+  dlEl('gk-close')?.addEventListener('click', closeGatekeeper);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeGatekeeper();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && !modal.hidden) closeGatekeeper();
+  });
+
+  const copy = dlEl('gk-copy');
+  copy?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(dlEl('gk-cmd')?.textContent ?? '');
+      const label = copy.textContent;
+      copy.textContent = messages[currentLang]['gk.copied'];
+      setTimeout(() => {
+        copy.textContent = label;
+      }, 1600);
+    } catch {
+      /* clipboard may be blocked; the command stays selectable */
+    }
+  });
+}
+
 function init() {
   let saved = 'zh';
   try {
@@ -380,6 +451,8 @@ function init() {
   }
 
   applyLanguage(saved);
+
+  initGatekeeper();
 
   document.getElementById('lang-toggle')?.addEventListener('click', () => {
     applyLanguage(currentLang === 'zh' ? 'en' : 'zh');
