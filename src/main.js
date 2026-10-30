@@ -627,6 +627,10 @@ function setSidebarCollapsed(collapsed, persist = true) {
   el.sidebarToggle.title = t(titleKey);
   el.sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
 
+  // 折叠/展开侧栏会改变可用宽度，把拖出来的列表宽度重新钳制一次
+  const inline = el.app.style.getPropertyValue('--list-width');
+  if (inline) setListWidth(parseFloat(inline) || LIST_MIN_WIDTH);
+
   if (!persist) return;
   try {
     localStorage.setItem(SIDEBAR_KEY, collapsed ? '1' : '0');
@@ -656,12 +660,13 @@ function togglePreview() {
 }
 
 
-/* ------------------------------------------------- 列表宽度拖拽（不持久化） */
+/* ------------------------------------------------- 列表宽度拖拽 */
 
 const LIST_MIN_WIDTH = 220;
 const LIST_MAX_WIDTH = 520;
 const CONTENT_MIN_WIDTH = 360;
 const LIST_KEY_STEP = 16;
+const LIST_WIDTH_KEY = 'miaomiao:list-width';
 
 function pxVar(name, fallback) {
   const raw = parseFloat(getComputedStyle(el.app).getPropertyValue(name));
@@ -676,13 +681,54 @@ function listMaxWidth() {
 
 function setListWidth(width) {
   const clamped = Math.min(Math.max(width, LIST_MIN_WIDTH), listMaxWidth());
-  el.app.style.setProperty('--list-width', `${Math.round(clamped)}px`);
-  return clamped;
+  const rounded = Math.round(clamped);
+  el.app.style.setProperty('--list-width', `${rounded}px`);
+  // 分隔条按像素汇报，min/max 也跟着当下的可用宽度走，读屏才知道边界在哪
+  el.listResizer.setAttribute('aria-valuemin', String(LIST_MIN_WIDTH));
+  el.listResizer.setAttribute('aria-valuemax', String(Math.round(listMaxWidth())));
+  el.listResizer.setAttribute('aria-valuenow', String(rounded));
+  return rounded;
 }
 
-/** 双击/回到默认：清掉内联值，让 tokens 与媒体查询重新接管 */
+/**
+ * 当前的列表宽度。列宽有 260ms 过渡，刚改完读 rect 会拿到动画中的旧值，
+ * 所以优先用内联值——连续按键/拖动才不会越走越偏。
+ */
+function currentListWidth() {
+  const inline = parseFloat(el.app.style.getPropertyValue('--list-width'));
+  if (Number.isFinite(inline)) return inline;
+  return el.notesPane.getBoundingClientRect().width;
+}
+
+/** 记住用户拖出来的宽度；传 null 表示回到默认。 */
+function rememberListWidth(width) {
+  try {
+    if (width == null) localStorage.removeItem(LIST_WIDTH_KEY);
+    else localStorage.setItem(LIST_WIDTH_KEY, String(Math.round(width)));
+  } catch {
+    /* storage may be unavailable, not fatal */
+  }
+}
+
+/** 双击/回到默认：清掉内联值与记住的宽度，让 tokens 与媒体查询重新接管 */
 function resetListWidth() {
   el.app.style.removeProperty('--list-width');
+  el.listResizer.removeAttribute('aria-valuenow');
+  el.listResizer.removeAttribute('aria-valuemin');
+  el.listResizer.removeAttribute('aria-valuemax');
+  rememberListWidth(null);
+}
+
+function restoreListWidth() {
+  let stored = 0;
+  try {
+    stored = Number(localStorage.getItem(LIST_WIDTH_KEY));
+  } catch {
+    return;
+  }
+  if (!Number.isFinite(stored) || stored <= 0) return;
+  // 窗口比上次窄（或侧栏展开）时，setListWidth 会按当下可用空间重新钳制。
+  setListWidth(stored);
 }
 
 function startListDrag(event) {
@@ -691,13 +737,14 @@ function startListDrag(event) {
 
   const startX = event.clientX;
   const startWidth = el.notesPane.getBoundingClientRect().width;
+  let lastWidth = startWidth;
   el.listResizer.classList.add('is-active');
   el.app.classList.add('is-resizing');
   document.body.classList.add('is-resizing');
   el.listResizer.setPointerCapture(event.pointerId);
 
   const onMove = (moveEvent) => {
-    setListWidth(startWidth + (moveEvent.clientX - startX));
+    lastWidth = setListWidth(startWidth + (moveEvent.clientX - startX));
   };
 
   const onEnd = () => {
@@ -707,6 +754,8 @@ function startListDrag(event) {
     el.listResizer.removeEventListener('pointermove', onMove);
     el.listResizer.removeEventListener('pointerup', onEnd);
     el.listResizer.removeEventListener('pointercancel', onEnd);
+    // 只在用户真的拖过之后记住，窗口缩放导致的钳制不算。
+    rememberListWidth(lastWidth);
   };
 
   el.listResizer.addEventListener('pointermove', onMove);
@@ -716,13 +765,13 @@ function startListDrag(event) {
 
 function onResizerKey(event) {
   const step = event.shiftKey ? LIST_KEY_STEP * 3 : LIST_KEY_STEP;
-  const current = el.notesPane.getBoundingClientRect().width;
+  const current = currentListWidth();
   if (event.key === 'ArrowLeft') {
     event.preventDefault();
-    setListWidth(current - step);
+    rememberListWidth(setListWidth(current - step));
   } else if (event.key === 'ArrowRight') {
     event.preventDefault();
-    setListWidth(current + step);
+    rememberListWidth(setListWidth(current + step));
   }
 }
 
@@ -1248,6 +1297,7 @@ async function boot() {
   );
 
   restoreSidebar();
+  restoreListWidth();
 
   const info = await api.vault.info();
   if (info.ok) {
