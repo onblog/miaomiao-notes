@@ -1,4 +1,4 @@
-import { EditorView, keymap, placeholder, drawSelection } from '@codemirror/view';
+import { EditorView, keymap, placeholder, drawSelection, Decoration, ViewPlugin } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
 import {
   defaultKeymap,
@@ -12,6 +12,7 @@ import {
   HighlightStyle,
   bracketMatching,
   indentOnInput,
+  syntaxTree,
 } from '@codemirror/language';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
 import { searchKeymap } from '@codemirror/search';
@@ -28,15 +29,66 @@ const warmHighlight = HighlightStyle.define([
   { tag: tags.strong, color: 'var(--text-strong)', fontWeight: '700' },
   { tag: tags.emphasis, fontStyle: 'italic', color: 'var(--text-muted)' },
   { tag: tags.strikethrough, textDecoration: 'line-through', color: 'var(--text-faint)' },
-  { tag: tags.link, color: 'var(--accent-strong)' },
-  { tag: tags.url, color: 'var(--text-faint)' },
-  { tag: tags.monospace, color: 'var(--accent-strong)', fontFamily: 'var(--font-mono)' },
+  { tag: tags.link, color: 'var(--text-link)' },
+  // GFM 会把 work@10.32.140.59 识别成 email 链接、http://… 识别成 URL，
+  // 以前一律用 text-faint，结果“深色不亮、浅色不黑”。改用链接色。
+  { tag: tags.url, color: 'var(--text-link)' },
+  { tag: tags.monospace, color: 'var(--code-inline-text)', fontFamily: 'var(--font-mono)' },
   { tag: tags.quote, color: 'var(--text-muted)', fontStyle: 'italic' },
   { tag: tags.list, color: 'var(--accent)' },
   { tag: tags.processingInstruction, color: 'var(--accent)' },
   { tag: tags.contentSeparator, color: 'var(--border-strong)' },
   { tag: tags.comment, color: 'var(--text-faint)' },
 ]);
+
+const inlineCodeMark = Decoration.mark({ class: 'cm-inline-code' });
+const codeTextMark = Decoration.mark({ class: 'cm-code-text' });
+
+/**
+ * lezer 的 Markdown 语法把行内代码与围栏代码内容标成 InlineCode / CodeText，
+ * 但它们没有高亮标签，颜色规则挂不上去。这里用装饰器补一层 class，
+ * 具体颜色仍然由 editor.css 的 token 决定。
+ */
+const codeDecorations = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.decorations = buildCodeDecorations(view);
+    }
+
+    update(update) {
+      if (update.docChanged || update.viewportChanged) {
+        this.decorations = buildCodeDecorations(update.view);
+      }
+    }
+  },
+  { decorations: (value) => value.decorations },
+);
+
+function buildCodeDecorations(view) {
+  const marks = [];
+  syntaxTree(view.state).iterate({
+    from: view.viewport.from,
+    to: view.viewport.to,
+    enter(node) {
+      if (node.name === 'InlineCode') {
+        // 只给内容上色，两端的反引号保持语法标记的样子
+        const cursor = node.node.cursor();
+        if (!cursor.firstChild()) return false;
+        const start = cursor.to;
+        let end = start;
+        while (cursor.nextSibling()) end = cursor.from;
+        if (end > start) marks.push(inlineCodeMark.range(start, end));
+        return false;
+      }
+      if (node.name === 'CodeText') {
+        if (node.to > node.from) marks.push(codeTextMark.range(node.from, node.to));
+        return false;
+      }
+      return undefined;
+    },
+  });
+  return Decoration.set(marks, true);
+}
 
 function extensionsFor(onChange, onPasteImage) {
   return [
@@ -48,6 +100,7 @@ function extensionsFor(onChange, onPasteImage) {
     EditorView.lineWrapping,
     markdown({ base: markdownLanguage }),
     syntaxHighlighting(warmHighlight),
+    codeDecorations,
     placeholder('写点什么吧，喵～'),
     keymap.of([
       ...defaultKeymap,

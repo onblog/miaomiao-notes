@@ -129,48 +129,19 @@
   color: var(--text-link);
 }
 
-/* Markdown 语法着色 */
-.cm-editor .tok-heading {
-  color: var(--text-strong);
-  font-weight: 700;
-}
+/* Markdown 语法着色：颜色在 editor.js 的 HighlightStyle 里（它生成哈希 class），
+   这里只补 lezer 没有高亮标签的两类节点（行内代码 / 围栏代码内容），
+   由 editor.js 的 codeDecorations 打上 class。 */
 
-.cm-editor .tok-strong {
-  color: var(--text-strong);
-  font-weight: 700;
-}
-
-.cm-editor .tok-emphasis {
-  font-style: italic;
-}
-
-.cm-editor .tok-link {
-  color: var(--text-link);
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text-link) 42%, transparent);
-  text-underline-offset: 3px;
-}
-
-.cm-editor .tok-url {
-  color: var(--text-faint);
-}
-
-/* 行内代码：以前只有橙色字，浅色下 3.09:1 直接不可读。
-   现在带底色 + 内描边（用 box-shadow，不加 padding，打字时不会推挤后面的文字）。 */
-.cm-editor .tok-monospace {
-  font-family: var(--font-mono);
-  font-size: 0.9em;
+.cm-editor .cm-inline-code {
   color: var(--code-inline-text);
   border-radius: 4px;
   background: var(--code-inline-bg);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 16%, transparent);
 }
 
-.cm-editor .tok-quote {
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.cm-editor .tok-list {
-  color: var(--accent);
+.cm-editor .cm-code-text {
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  color: var(--text-body);
 }

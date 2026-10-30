@@ -52,8 +52,10 @@
   /* 文字 */
   --text-strong: #3b3530;
   --text-body: #4a433c;
-  --text-muted: #8b8079;
-  --text-faint: #b3a89f;
+  /* 5.98:1：摘要、日期、路径这类次要文字原来只有 3.85:1 */
+  --text-muted: #6b6258;
+  /* 5.06:1（浅底上 4.7+）：时间戳、占位符、设置提示原来只有 2.33:1，几乎看不见 */
+  --text-faint: #776d63;
   --text-inverse: #ffffff;
 
   /* 品牌 */
@@ -63,11 +65,12 @@
   --accent-line: #f5b898;
 
   /* 语义 */
-  --danger: #d9534f;
+  /* 语义色作为文字时也要过 AA（原来 3.2–4.0:1） */
+  --danger: #b83834;
   --danger-soft: #fbe7e6;
-  --warning: #c98a2b;
+  --warning: #96640f;
   --warning-soft: #fdf3e2;
-  --success: #5a9e6f;
+  --success: #3f7a52;
 
   /* 结构 */
   --border-subtle: rgba(120, 100, 85, 0.1);
@@ -115,9 +118,10 @@
 
   --text-strong: #f5f0eb;
   --text-body: #cfc7c0;
-  --text-muted: #9b928b;
-  /* 5.4:1：提示文字也要过 AA，不再靠“看起来还行” */
-  --text-faint: #8f867f;
+  /* 7.49:1 */
+  --text-muted: #a8a09a;
+  /* 6.39:1：提示文字也要过 AA，不再靠“看起来还行” */
+  --text-faint: #9c938b;
   --text-inverse: #14120f;
 
   --accent: #ff9b6e;

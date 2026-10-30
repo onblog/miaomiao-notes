@@ -176,7 +176,8 @@ svg {
 
 .folder-item.is-active {
   background: var(--surface-active);
-  color: var(--accent-strong);
+  /* 选中文件夹是常驻文字，3.09:1 的强调橙太浅，改用链接色（浅色 5.89:1） */
+  color: var(--text-link);
   font-weight: 550;
 }
 
@@ -818,7 +819,7 @@ body.is-resizing {
   margin: 0.18em 0;
 }
 .preview-host a {
-  color: var(--accent-strong);
+  color: var(--text-link);
   text-decoration: none;
   border-bottom: 1px solid var(--accent-line);
 }
