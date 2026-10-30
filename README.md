@@ -38,7 +38,7 @@ Because your notes should be **files**, not someone else's database.
 
 | Area | What you get |
 | --- | --- |
-| Layout | Folder column, note column, editor — native macOS chrome |
+| Layout | Folder column, note column, editor — native macOS chrome; position, size, zoom and fullscreen are remembered across relaunches |
 | Editing | CodeMirror 6, Markdown syntax highlighting, live preview (⌘E) |
 | Storage | Plain `.md` files; iCloud Drive when available, otherwise `~/Documents` |
 | Sync | macOS iCloud Drive, no extra service |

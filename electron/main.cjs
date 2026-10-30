@@ -1,6 +1,15 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, Menu, shell, dialog, nativeTheme } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  shell,
+  dialog,
+  nativeTheme,
+  screen,
+} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { randomUUID } = require('node:crypto');
@@ -17,6 +26,65 @@ const settings = require('./settings.cjs');
 
 // Load the Vite dev server only when explicitly asked, otherwise use dist/.
 const DEV_URL = process.env.VITE_DEV_SERVER_URL;
+
+/* ------------------------------------------------------------ window state */
+
+const DEFAULT_WIDTH = 1180;
+const DEFAULT_HEIGHT = 780;
+const MIN_WIDTH = 900;
+const MIN_HEIGHT = 560;
+
+/** Wait for a drag/resize to settle: a fullscreen animation also fires 'resize'. */
+const GEOMETRY_SETTLE_MS = 250;
+
+/** Normal (non-zoomed, non-fullscreen) geometry; null until we learn it. */
+let lastNormalBounds = null;
+let geometryTimer = null;
+
+/**
+ * Saved geometry is only trusted while a usable part of it still overlaps a
+ * display — monitors get unplugged and resolutions change between launches.
+ */
+function boundsOnScreen(bounds) {
+  if (!bounds) return false;
+
+  return screen.getAllDisplays().some(({ workArea }) => {
+    const overlapX =
+      Math.min(bounds.x + bounds.width, workArea.x + workArea.width) - Math.max(bounds.x, workArea.x);
+    const overlapY =
+      Math.min(bounds.y + bounds.height, workArea.y + workArea.height) -
+      Math.max(bounds.y, workArea.y);
+    return overlapX >= 160 && overlapY >= 120;
+  });
+}
+
+/**
+ * Write geometry + flags. Called both on close and after a drag settles.
+ *
+ * While the window is zoomed or fullscreen the normal bounds are the ones we
+ * must keep: macOS also reports intermediate frames while the zoom animates, so
+ * only a settled, non-zoomed window is allowed to update them.
+ */
+function persistWindowGeometry() {
+  const win = mainWindow;
+  if (!win || win.isDestroyed()) return;
+
+  const maximized = win.isMaximized();
+  const fullScreen = win.isFullScreen();
+  if (!maximized && !fullScreen) lastNormalBounds = win.getBounds();
+
+  settings.write({
+    windowBounds: lastNormalBounds,
+    windowMaximized: maximized,
+    windowFullScreen: fullScreen,
+  });
+}
+
+/** Debounced save: drag and resize fire many events, zoom animations too. */
+function trackWindowGeometry() {
+  clearTimeout(geometryTimer);
+  geometryTimer = setTimeout(persistWindowGeometry, GEOMETRY_SETTLE_MS);
+}
 
 /**
  * Anonymous launch beacon.
@@ -184,11 +252,20 @@ function createWindow() {
   const current = settings.read();
   nativeTheme.themeSource = current.theme;
 
+  // Reopen exactly where the user left it; fall back to the default size when
+  // the saved rectangle no longer lands on a display.
+  const saved = current.windowBounds && boundsOnScreen(current.windowBounds)
+    ? current.windowBounds
+    : null;
+  lastNormalBounds = saved;
+  clearTimeout(geometryTimer);
+
   mainWindow = new BrowserWindow({
-    width: 1180,
-    height: 780,
-    minWidth: 900,
-    minHeight: 560,
+    width: saved?.width ?? DEFAULT_WIDTH,
+    height: saved?.height ?? DEFAULT_HEIGHT,
+    ...(saved ? { x: saved.x, y: saved.y } : {}),
+    minWidth: MIN_WIDTH,
+    minHeight: MIN_HEIGHT,
     title: '喵喵笔记',
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 18, y: 20 },
@@ -205,7 +282,42 @@ function createWindow() {
     },
   });
 
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  // Restore zoom / fullscreen only once, and only after the first paint: the
+  // frame has to exist before macOS runs the animation. A fullscreen window
+  // additionally has to be key, so we retry on the first focus as well.
+  let revealed = false;
+  let modeRestored = false;
+
+  const restoreWindowMode = () => {
+    if (modeRestored || !mainWindow || mainWindow.isDestroyed()) return;
+    modeRestored = true;
+    if (current.windowFullScreen) mainWindow.setFullScreen(true);
+    else if (current.windowMaximized) mainWindow.maximize();
+  };
+
+  const reveal = () => {
+    if (revealed || !mainWindow || mainWindow.isDestroyed()) return;
+    revealed = true;
+    mainWindow.show();
+    setTimeout(restoreWindowMode, 120);
+  };
+
+  mainWindow.once('ready-to-show', reveal);
+  // Safety net: a hidden window can defer its first paint, and ready-to-show
+  // would then never fire — an invisible app is worse than one shown a frame
+  // early, since it paints the vibrancy material either way.
+  const revealFallback = setTimeout(reveal, 1200);
+  mainWindow.once('focus', () => setTimeout(restoreWindowMode, 60));
+
+  // Geometry: debounced while dragging, immediate for mode changes and close so
+  // "close the window, open it again" never loses the last position.
+  mainWindow.on('resize', trackWindowGeometry);
+  mainWindow.on('move', trackWindowGeometry);
+  for (const event of ['maximize', 'unmaximize', 'enter-full-screen', 'leave-full-screen']) {
+    mainWindow.on(event, persistWindowGeometry);
+  }
+  mainWindow.on('close', persistWindowGeometry);
+  mainWindow.on('closed', () => clearTimeout(revealFallback));
 
   if (DEV_URL) {
     mainWindow.loadURL(DEV_URL);

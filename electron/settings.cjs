@@ -33,9 +33,31 @@ const DEFAULTS = {
   defaultView: 'edit',
   /** disable the cat float animation and other transitions */
   reduceMotion: false,
+  /** last window geometry; null means "let macOS place it" */
+  windowBounds: null,
+  /** window was zoomed on quit, so reopen zoomed */
+  windowMaximized: false,
+  /** window was fullscreen on quit, so reopen fullscreen */
+  windowFullScreen: false,
 };
 
 const VIEW_MODES = ['edit', 'preview', 'split'];
+
+const MIN_BOUND = { width: 480, height: 320 };
+const MAX_BOUND = 10000;
+
+/** Keep only numbers we could actually hand back to BrowserWindow. */
+function sanitizeBounds(input) {
+  if (!input || typeof input !== 'object') return null;
+
+  const numbers = [input.x, input.y, input.width, input.height].map(Number);
+  if (!numbers.every((value) => Number.isFinite(value))) return null;
+
+  const [x, y, width, height] = numbers.map((value) => Math.round(value));
+  if (width < MIN_BOUND.width || height < MIN_BOUND.height) return null;
+  if (width > MAX_BOUND || height > MAX_BOUND) return null;
+  return { x, y, width, height };
+}
 
 let cache = null;
 
@@ -78,6 +100,10 @@ function sanitize(input) {
     out.defaultView = input.defaultPreview ? 'preview' : 'edit';
   }
   if (typeof input.reduceMotion === 'boolean') out.reduceMotion = input.reduceMotion;
+
+  out.windowBounds = sanitizeBounds(input.windowBounds);
+  if (typeof input.windowMaximized === 'boolean') out.windowMaximized = input.windowMaximized;
+  if (typeof input.windowFullScreen === 'boolean') out.windowFullScreen = input.windowFullScreen;
 
   return out;
 }
