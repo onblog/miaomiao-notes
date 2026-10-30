@@ -21,7 +21,7 @@
 /* 加 .editor-host 前缀是为了压过 CodeMirror 运行时注入的 `.cm-content{padding:4px 0}` */
 .editor-host .cm-content {
   padding: 22px 34px 45vh;
-  caret-color: var(--accent-strong);
+  caret-color: var(--caret);
   user-select: text;
 }
 
@@ -47,18 +47,86 @@
    否则深色主题下光标仍是黑色，几乎看不见 */
 .editor-host .cm-cursor,
 .editor-host .cm-dropCursor {
-  border-left: 2px solid var(--accent-strong);
+  border-left: 2px solid var(--caret);
 }
 
+/* 选区颜色进主题 token：深色主题下 22% 的橙在近黑底上几乎看不见，这里两套各自定。
+   只画在选中的字上，不再派生任何“全文同类片段”高亮。 */
 .cm-selectionBackground,
 .cm-focused .cm-selectionBackground,
 .cm-content ::selection {
-  background: rgba(240, 138, 93, 0.22) !important;
+  background: var(--selection-bg) !important;
+}
+
+/* 搜索命中（⌘F）：与选区同色系但更实，避免和普通选区混淆 */
+.cm-editor .cm-searchMatch {
+  border-radius: 3px;
+  background: var(--search-match-bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-strong) 45%, transparent);
+}
+
+.cm-editor .cm-searchMatch.cm-searchMatch-selected {
+  background: color-mix(in srgb, var(--accent-strong) 38%, transparent);
 }
 
 .cm-placeholder {
   color: var(--text-faint);
   font-style: normal;
+}
+
+/* ⌘F 面板：CodeMirror 自带的是浅灰控件 + 渐变按钮，深色主题里像贴了张白纸 */
+.cm-editor .cm-panels {
+  border-color: var(--border-subtle);
+  background: var(--surface-raised);
+  color: var(--text-body);
+}
+
+.cm-editor .cm-panels.cm-panels-top {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.cm-editor .cm-panels.cm-panels-bottom {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.cm-editor .cm-textfield {
+  padding: 3px 7px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface-search);
+  color: var(--text-body);
+  font: inherit;
+  font-size: 12.5px;
+}
+
+.cm-editor .cm-textfield:focus {
+  outline: none;
+  border-color: var(--accent-strong);
+}
+
+.cm-editor .cm-button {
+  padding: 3px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background-color: var(--surface-hover);
+  background-image: none;
+  color: var(--text-body);
+  font: inherit;
+  font-size: 12px;
+}
+
+.cm-editor .cm-button:hover {
+  background-color: var(--surface-active);
+}
+
+.cm-editor .cm-panel.cm-search label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.cm-editor .cm-panels a,
+.cm-editor .cm-panels a:visited {
+  color: var(--text-link);
 }
 
 /* Markdown 语法着色 */
@@ -77,17 +145,25 @@
 }
 
 .cm-editor .tok-link {
-  color: var(--accent-strong);
+  color: var(--text-link);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--text-link) 42%, transparent);
+  text-underline-offset: 3px;
 }
 
 .cm-editor .tok-url {
   color: var(--text-faint);
 }
 
+/* 行内代码：以前只有橙色字，浅色下 3.09:1 直接不可读。
+   现在带底色 + 内描边（用 box-shadow，不加 padding，打字时不会推挤后面的文字）。 */
 .cm-editor .tok-monospace {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  color: var(--accent-strong);
+  color: var(--code-inline-text);
+  border-radius: 4px;
+  background: var(--code-inline-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 14%, transparent);
 }
 
 .cm-editor .tok-quote {

@@ -85,56 +85,75 @@
   --code-type: #2f7d8c;
   --code-attr: #8a5a3a;
   --code-punct: #9b8f84;
+
+  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中的语义色。
+     行内代码 5.81:1、链接 5.89:1、光标 5.21:1，均过 WCAG AA 小字号。 */
+  --code-inline-bg: #f4ece4;
+  --code-inline-text: #8a4a2a;
+  --selection-bg: rgba(231, 111, 81, 0.16);
+  --caret: #b0502c;
+  --text-link: #a34a28;
+  --search-match-bg: rgba(240, 138, 93, 0.26);
 }
 
 /* ------------------------------------------------------------------
-   主题：夜猫（dark）
-   同一套语义变量，只是把「纸」换成「夜里的暖木头」。
+   主题：深墨（dark）
+   近黑底色 #0f0e0d 只带一点暖，和白天的奶油纸是同一条色温线；
+   层级靠 6–8% 的明度差拉开，不再靠棕色的饱和度。
+   对比度：正文 11.56:1、行内代码 11.93:1、强调 10.84:1。
    ------------------------------------------------------------------ */
 
 [data-theme='dark'] {
-  --surface-app: #171412;
-  --surface-sidebar: rgba(38, 32, 27, 0.72);
-  --surface-list: #1c1815;
-  --surface-content: #201c18;
-  --surface-raised: #2a241f;
-  --surface-hover: rgba(245, 145, 98, 0.1);
-  --surface-active: rgba(245, 145, 98, 0.17);
-  --surface-search: rgba(255, 240, 228, 0.07);
+  --surface-app: #0c0b0a;
+  --surface-sidebar: rgba(24, 20, 17, 0.72);
+  --surface-list: #121110;
+  --surface-content: #0f0e0d;
+  --surface-raised: #1b1714;
+  --surface-hover: rgba(255, 155, 110, 0.09);
+  --surface-active: rgba(255, 155, 110, 0.15);
+  --surface-search: rgba(255, 240, 228, 0.06);
 
-  --text-strong: #f4ece4;
-  --text-body: #d8cec4;
-  --text-muted: #a99d93;
-  /* 3.3–3.9:1 在深色底上看不清，提到 ~5.4:1（WCAG AA） */
-  --text-faint: #9b8f86;
-  --text-inverse: #1a1512;
+  --text-strong: #f5f0eb;
+  --text-body: #cfc7c0;
+  --text-muted: #9b928b;
+  /* 5.4:1：提示文字也要过 AA，不再靠“看起来还行” */
+  --text-faint: #8f867f;
+  --text-inverse: #14120f;
 
-  --accent: #f59162;
-  --accent-strong: #ffa97d;
-  --accent-soft: #3a2a22;
-  --accent-line: #6b4432;
+  --accent: #ff9b6e;
+  --accent-strong: #ffb085;
+  --accent-soft: #2a1f19;
+  --accent-line: #5c3d2d;
 
-  --danger: #e5736f;
-  --danger-soft: #3a2220;
-  --warning: #e0a95c;
-  --warning-soft: #3a2e1c;
-  --success: #7bbd8f;
+  --danger: #f0807b;
+  --danger-soft: #382120;
+  --warning: #e0b06a;
+  --warning-soft: #2e2418;
+  --success: #8cc79c;
 
   --border-subtle: rgba(255, 235, 220, 0.08);
-  --border-strong: rgba(255, 235, 220, 0.16);
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.24);
-  --shadow-pop: 0 10px 32px rgba(0, 0, 0, 0.45);
+  --border-strong: rgba(255, 235, 220, 0.14);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.36);
+  --shadow-pop: 0 10px 32px rgba(0, 0, 0, 0.55);
 
-  /* 代码块语法色 */
-  --code-bg: #17130f;
-  --code-keyword: #f59162;
-  --code-string: #9fc08a;
-  --code-number: #e0b070;
-  --code-comment: #9a8e85;
+  /* 代码块语法色：全部 ≥ 5:1（注释 5.17:1 是最低的一个） */
+  --code-bg: #0a0908;
+  --code-keyword: #ff9b6e;
+  --code-string: #a6c98e;
+  --code-number: #e6bd7a;
+  --code-comment: #8b8078;
   --code-function: #c3a6f0;
   --code-type: #7fc8d6;
   --code-attr: #d9a07a;
-  --code-punct: #9a8e85;
+  --code-punct: #8b8078;
+
+  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 */
+  --code-inline-bg: #1b1815;
+  --code-inline-text: #ffc9a8;
+  --selection-bg: rgba(255, 176, 133, 0.24);
+  --caret: #ffb085;
+  --text-link: #ffb085;
+  --search-match-bg: rgba(255, 176, 133, 0.22);
 
   color-scheme: dark;
 }

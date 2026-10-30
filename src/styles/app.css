@@ -834,7 +834,9 @@ body.is-resizing {
   font-size: 0.88em;
   padding: 0.15em 0.38em;
   border-radius: 4px;
-  background: var(--surface-search);
+  background: var(--code-inline-bg);
+  color: var(--code-inline-text);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 14%, transparent);
 }
 .preview-host pre {
   padding: 10px 12px;

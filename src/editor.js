@@ -14,7 +14,7 @@ import {
   indentOnInput,
 } from '@codemirror/language';
 import { closeBrackets, closeBracketsKeymap } from '@codemirror/autocomplete';
-import { searchKeymap, highlightSelectionMatches } from '@codemirror/search';
+import { searchKeymap } from '@codemirror/search';
 import { tags } from '@lezer/highlight';
 
 /**
@@ -42,7 +42,6 @@ function extensionsFor(onChange, onPasteImage) {
   return [
     history(),
     drawSelection(),
-    highlightSelectionMatches(),
     bracketMatching(),
     closeBrackets(),
     indentOnInput(),
