@@ -46,6 +46,8 @@ const el = {
   emptyState: document.getElementById('empty-state'),
   conflictBanner: document.getElementById('conflict-banner'),
   syncHint: document.getElementById('sync-hint'),
+  langToggle: document.getElementById('btn-lang'),
+  themeToggle: document.getElementById('btn-theme'),
 };
 
 const editor = createEditor({
@@ -752,6 +754,40 @@ function applySettings(next) {
   if (state.activeNote && state.currentMtime) {
     el.contentDate.textContent = t('note.updated', { time: formatDate(state.currentMtime) });
   }
+
+  syncQuickToggles();
+}
+
+/**
+ * 右上角两个快捷开关。图标表示“当前是什么”，标题说明“点了会变成什么”，
+ * 所以每次设置变化都要重算一遍文案。
+ */
+function syncQuickToggles() {
+  const languageTarget = getLanguage() === 'zh' ? 'en' : 'zh';
+  const themeIsDark = state.settings?.theme === 'dark';
+
+  el.langToggle.title = t(languageTarget === 'en' ? 'action.langToEn' : 'action.langToZh');
+  el.themeToggle.title = t(themeIsDark ? 'action.themeToLight' : 'action.themeToDark');
+}
+
+/** 保存一个设置项并让界面立即跟随；不经过设置面板。 */
+async function saveSettings(patch) {
+  if (!api) return;
+
+  const result = await api.settings.set(patch);
+  if (!result.ok) {
+    toast(t('toast.settingsFailed'), true);
+    return;
+  }
+  applySettings(result.data);
+}
+
+function toggleLanguage() {
+  saveSettings({ language: getLanguage() === 'zh' ? 'en' : 'zh' });
+}
+
+function toggleTheme() {
+  saveSettings({ theme: state.settings?.theme === 'dark' ? 'light' : 'dark' });
 }
 
 function openSettings() {
@@ -1140,6 +1176,9 @@ el.listResizer.addEventListener('dblclick', resetListWidth);
 document.getElementById('btn-more').addEventListener('click', () => {
   if (state.activeNote) noteMenu(state.activeNote);
 });
+
+el.langToggle.addEventListener('click', toggleLanguage);
+el.themeToggle.addEventListener('click', toggleTheme);
 
 document.getElementById('btn-settings').addEventListener('click', openSettings);
 api.onOpenSettings(openSettings);

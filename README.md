@@ -43,7 +43,7 @@ Because your notes should be **files**, not someone else's database.
 | Storage | Plain `.md` files; iCloud Drive when available, otherwise `~/Documents` |
 | Sync | macOS iCloud Drive, no extra service |
 | Safety | Atomic writes, `.trash` soft delete, iCloud conflict detection |
-| Interface | Chinese / English, light and dark themes |
+| Interface | Chinese / English and light / dark, with two one-click icon buttons in the editor header |
 | Updates | Manual check in Settings, plus one silent check per day |
 
 ## Requirements

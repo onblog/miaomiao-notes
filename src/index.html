@@ -153,6 +153,25 @@
                 <circle cx="12" cy="18.5" r="1.6" />
               </svg>
             </button>
+
+            <!-- 快捷开关：只在中英 / 明暗之间切换，不打开设置面板（标题随状态更新） -->
+            <button class="icon-button" id="btn-lang" type="button" title="切换语言">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="8.4" />
+                <path d="M3.6 12h16.8" />
+                <path d="M12 3.6c2.3 2.4 3.5 5.3 3.5 8.4s-1.2 6-3.5 8.4c-2.3-2.4-3.5-5.3-3.5-8.4s1.2-6 3.5-8.4Z" />
+              </svg>
+            </button>
+            <button class="icon-button theme-toggle" id="btn-theme" type="button" title="切换主题">
+              <!-- 浅色显示太阳、深色显示月亮：和视图按钮一样，图标表示“当前是什么” -->
+              <svg class="theme-toggle__sun" viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2.9v2.2M12 18.9v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.9 12h2.2M18.9 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" />
+              </svg>
+              <svg class="theme-toggle__moon" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20.2 14.6A8.6 8.6 0 0 1 9.4 3.8a8.6 8.6 0 1 0 10.8 10.8Z" />
+              </svg>
+            </button>
           </div>
         </header>
 

@@ -552,6 +552,19 @@ body.is-resizing {
   display: block;
 }
 
+/* 主题按钮：图标跟随当前主题，浅色是太阳、深色是月亮 */
+.theme-toggle__moon {
+  display: none;
+}
+
+[data-theme='dark'] .theme-toggle__sun {
+  display: none;
+}
+
+[data-theme='dark'] .theme-toggle__moon {
+  display: block;
+}
+
 .editor-host {
   flex: 1;
   min-height: 0;
