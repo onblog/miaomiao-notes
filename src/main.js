@@ -980,6 +980,26 @@ function openSettings() {
         </section>
 
         <section class="settings__group">
+          <p class="settings__group-title">${t('settings.about')}</p>
+          <div class="settings__row">
+            <div class="settings__label">
+              <strong>${t('settings.version')}</strong>
+              <span id="js-version-line">v${state.appVersion || '—'}</span>
+            </div>
+            <div class="settings__actions" id="js-update-actions">
+              <button class="jw-btn" type="button" id="js-check-update">${t('settings.checkUpdate')}</button>
+            </div>
+          </div>
+          <div class="settings__row">
+            <div class="settings__label">
+              <strong>${t('settings.autoUpdate')}</strong>
+              <span>${t('settings.autoUpdate.desc')}</span>
+            </div>
+            <button class="switch" type="button" role="switch" data-key="autoCheckUpdates"></button>
+          </div>
+        </section>
+
+        <section class="settings__group">
           <p class="settings__group-title">${t('settings.support')}</p>
           <button class="sponsor" type="button" id="js-sponsor">
             <svg class="sponsor__cat" viewBox="0 0 64 64" aria-hidden="true">
@@ -998,26 +1018,6 @@ function openSettings() {
             </span>
             <span class="sponsor__arrow" aria-hidden="true">→</span>
           </button>
-        </section>
-
-        <section class="settings__group">
-          <p class="settings__group-title">${t('settings.about')}</p>
-          <div class="settings__row">
-            <div class="settings__label">
-              <strong>${t('settings.version')}</strong>
-              <span id="js-version-line">v${state.appVersion || '—'}</span>
-            </div>
-            <div class="settings__actions" id="js-update-actions">
-              <button class="jw-btn" type="button" id="js-check-update">${t('settings.checkUpdate')}</button>
-            </div>
-          </div>
-          <div class="settings__row">
-            <div class="settings__label">
-              <strong>${t('settings.autoUpdate')}</strong>
-              <span>${t('settings.autoUpdate.desc')}</span>
-            </div>
-            <button class="switch" type="button" role="switch" data-key="autoCheckUpdates"></button>
-          </div>
         </section>
       </div>
       <div class="settings__developer">
