@@ -121,6 +121,9 @@ function readSiteUrlFromDotEnv() {
 
 const SITE_URL = String(process.env.SITE_URL || GENERATED_SITE.siteUrl || readSiteUrlFromDotEnv() || '')
   .replace(/\/+$/, '');
+// 联系方式同样是部署配置：打包时由 CONTACT_EMAIL 写进 site.generated.json（仓库里不出现真实邮箱）。
+// 没有配置时留空，渲染层据此隐藏邮箱入口。
+const CONTACT_EMAIL = String(process.env.CONTACT_EMAIL || GENERATED_SITE.contactEmail || '').trim();
 const STATS_URL = `${SITE_URL}/api/ping`;
 const STATS_DELAY_MS = 5000;
 
@@ -473,9 +476,13 @@ function registerIpc() {
   });
 
   handle('app:open-email', () => {
-    shell.openExternal('mailto:hello@wordtk.com');
+    if (!CONTACT_EMAIL) return false;
+    shell.openExternal(`mailto:${CONTACT_EMAIL}`);
     return true;
   });
+
+  // 渲染层需要邮箱原文来渲染「邮件」入口；空串表示本次构建没有配置。
+  handle('app:site', () => ({ siteUrl: SITE_URL, contactEmail: CONTACT_EMAIL }));
 
   handle('settings:reset', () => {
     const next = settings.reset();
@@ -729,7 +736,7 @@ app.whenReady().then(() => {
     applicationName: '喵喵笔记',
     applicationVersion: app.getVersion(),
     copyright: '© 2026 Martin',
-    credits: 'Martin\nhello@wordtk.com',
+    credits: CONTACT_EMAIL ? `Martin\n${CONTACT_EMAIL}` : 'Martin',
     authors: ['Martin'],
   });
 

@@ -1115,7 +1115,7 @@ function openSettings() {
             <rect x="3" y="5" width="18" height="14" rx="2.5" />
             <path d="m3.5 7 8.5 6 8.5-6" />
           </svg>
-          <span>hello@wordtk.com</span>
+          <span id="js-email-text"></span>
         </button>
         <button class="developer__item" type="button" id="js-github">
           <svg viewBox="0 0 24 24" aria-hidden="true" class="is-filled">
@@ -1201,6 +1201,22 @@ function openSettings() {
   backdrop.querySelector('#js-email')?.addEventListener('click', () => {
     api.app.openEmail();
   });
+
+  // 邮箱不在仓库里：打包时由 CONTACT_EMAIL 写进 site.generated.json，经主进程下发。
+  // 没配置就隐藏整个入口，避免出现空白的「邮件」按钮。
+  const emailButton = backdrop.querySelector('#js-email');
+  void (async () => {
+    let contactEmail = '';
+    try {
+      const site = await api.app.site();
+      contactEmail = String(site?.contactEmail ?? '');
+    } catch {
+      contactEmail = '';
+    }
+    const emailText = backdrop.querySelector('#js-email-text');
+    if (emailText) emailText.textContent = contactEmail;
+    if (emailButton && !contactEmail) emailButton.hidden = true;
+  })();
 
   backdrop.querySelector('#js-github')?.addEventListener('click', () => {
     api.app.openProfile();

@@ -202,9 +202,11 @@ export function createMockApi() {
     },
     app: {
       version: async () => ({ ok: true, data: { version: '1.1.0', platform: 'darwin' } }),
+      // 浏览器里没有主进程：站点地址与联系方式一律留空，页面按「未配置」处理。
+      site: async () => ({ siteUrl: '', contactEmail: '' }),
       checkUpdate: async () => ({
         ok: true,
-        data: { current: '1.1.0', latest: '1.1.0', hasUpdate: false, url: 'https://notes.wordtk.com' },
+        data: { current: '1.1.0', latest: '1.1.0', hasUpdate: false, url: '' },
       }),
       openSite: async () => ({ ok: true }),
       openProfile: async () => ({ ok: true }),

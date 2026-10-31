@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('miaomiao', {
 
   app: {
     version: () => ipcRenderer.invoke('app:version'),
+    site: () => ipcRenderer.invoke('app:site'),
     checkUpdate: () => ipcRenderer.invoke('app:check-update'),
     openSite: () => ipcRenderer.invoke('app:open-site'),
     openProfile: () => ipcRenderer.invoke('app:open-profile'),

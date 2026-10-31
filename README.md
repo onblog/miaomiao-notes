@@ -77,6 +77,7 @@ so the production domain never enters the repo):
 
 ```bash
 SITE_URL=https://your-site.example
+CONTACT_EMAIL=you@example.com   # optional: mail entry in the developer panel, hidden when unset
 ```
 
 `npm run dist` refuses to build without it, so a release can never ship a dead

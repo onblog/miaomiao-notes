@@ -75,6 +75,7 @@ npm run clean    # 手动清理 release/，只保留当前版本
 
 ```bash
 SITE_URL=https://your-site.example
+CONTACT_EMAIL=you@example.com   # 可选：关于面板里的邮箱入口，不配置就隐藏
 ```
 
 `npm run dist` 缺少这个变量会直接拒绝打包，避免发出「检查更新永远失败」的版本。
