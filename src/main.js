@@ -1,7 +1,7 @@
 import 'katex/dist/katex.min.css';
 import './styles/app.css';
 import { createEditor } from './editor.js';
-import { renderMarkdown } from './preview.js';
+import { renderMarkdown, renderMermaid } from './preview.js';
 import { createMockApi } from './mock-api.js';
 import { t, setLanguage, getLanguage, applyI18n } from './i18n.js';
 
@@ -406,10 +406,15 @@ function noteBaseDir() {
   return folder ? `${state.vaultPath}/${folder}` : state.vaultPath;
 }
 
+/** 把编辑器内容画进预览区；mermaid 图表在这里做二次渲染。 */
+function paintPreview() {
+  if (state.viewMode === 'edit') return;
+  el.previewHost.innerHTML = renderMarkdown(editor.getValue(), noteBaseDir());
+  void renderMermaid(el.previewHost, state.settings?.theme === 'dark' ? 'dark' : 'cream');
+}
+
 function onDocChange() {
-  if (state.viewMode !== 'edit') {
-    el.previewHost.innerHTML = renderMarkdown(editor.getValue(), noteBaseDir());
-  }
+  paintPreview();
   if (!state.activeNote) return;
   state.dirty = true;
   renderNotes();
@@ -597,9 +602,7 @@ function applyViewMode(mode) {
   el.previewHost.hidden = next === 'edit';
   el.content.dataset.view = next;
 
-  if (next !== 'edit') {
-    el.previewHost.innerHTML = renderMarkdown(editor.getValue(), noteBaseDir());
-  }
+  paintPreview();
 
   el.viewButton.dataset.view = next;
   el.viewButton.classList.toggle('is-on', next !== 'edit');
@@ -651,12 +654,17 @@ function restoreSidebar() {
 
 function cycleView() {
   const index = VIEW_ORDER.indexOf(state.viewMode);
-  applyViewMode(VIEW_ORDER[(index + 1) % VIEW_ORDER.length]);
+  const next = VIEW_ORDER[(index + 1) % VIEW_ORDER.length];
+  applyViewMode(next);
+  // 实时落盘：关掉再打开时沿用最后一次的视图
+  saveSettings({ defaultView: next });
 }
 
 /** ⌘E 的语义保持不变：全屏预览 ↔ 只写。 */
 function togglePreview() {
-  applyViewMode(state.viewMode === 'preview' ? 'edit' : 'preview');
+  const next = state.viewMode === 'preview' ? 'edit' : 'preview';
+  applyViewMode(next);
+  saveSettings({ defaultView: next });
 }
 
 
@@ -783,6 +791,9 @@ function applySettings(next) {
   document.documentElement.dataset.theme = next.theme === 'dark' ? 'dark' : 'cream';
   document.documentElement.style.setProperty('--editor-font-size', `${next.fontSize}px`);
   document.body.classList.toggle('reduce-motion', Boolean(next.reduceMotion));
+
+  // 主题变了，mermaid 图表要按新配色重画（浅色/深色两套主题变量）
+  if (el.previewHost && state.activeNote) paintPreview();
 
   if (next.language) setLanguage(next.language);
   applyI18n();

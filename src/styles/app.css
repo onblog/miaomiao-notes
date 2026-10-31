@@ -831,7 +831,7 @@ body.is-resizing {
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
   color: var(--text-muted);
 }
-.preview-host code {
+.preview-host :not(pre) > code {
   font-family: var(--font-mono);
   font-size: 0.88em;
   padding: 0.15em 0.38em;
@@ -852,6 +852,9 @@ body.is-resizing {
 .preview-host pre code {
   background: none;
   padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--text-body);
 }
 .preview-host table {
   width: 100%;
@@ -1377,4 +1380,35 @@ body.reduce-motion .empty-state__cat {
 .developer__item svg.is-filled {
   fill: currentColor;
   stroke: none;
+}
+
+
+/* ------------------------------------------------------------------ mermaid 图表 */
+
+.preview-host .mermaid {
+  margin: 0 0 12px;
+  padding: 14px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-app);
+  border: 1px solid var(--border-subtle);
+  overflow-x: auto;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.preview-host .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 渲染失败时保留原始代码块，并在下方提示原因 */
+.preview-host .mermaid-error {
+  margin: -6px 0 12px;
+  padding-left: 2px;
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.preview-host pre.mermaid-broken {
+  border-color: color-mix(in srgb, var(--danger) 40%, var(--border-subtle));
 }
