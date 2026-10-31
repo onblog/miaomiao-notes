@@ -17,9 +17,9 @@
     "icon": "bash scripts/build-icon.sh",
     "start": "npm run build && electron .",
     "dist": "node scripts/write-site-config.cjs --require && npm run dist:arm64 && npm run dist:x64 && npm run clean",
-    "dist:arm64": "electron-builder --mac --arm64",
-    "dist:x64": "electron-builder --mac --x64",
-    "dist:ulmo": "node scripts/write-site-config.cjs --require && npm run dist:arm64 && node scripts/compress-dmg.cjs arm64 && npm run dist:x64 && node scripts/compress-dmg.cjs x64 && npm run clean",
+    "dist:arm64": "npm run build && electron-builder --mac --arm64",
+    "dist:x64": "npm run build && electron-builder --mac --x64",
+    "dist:ulmo": "node scripts/write-site-config.cjs --require && npm run build && npm run dist:arm64 && node scripts/compress-dmg.cjs arm64 && npm run dist:x64 && node scripts/compress-dmg.cjs x64 && npm run clean",
     "clean": "node scripts/clean-release.cjs"
   },
   "dependencies": {

@@ -1350,9 +1350,20 @@ body.reduce-motion .empty-state__cat {
 }
 
 .developer__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-weight: 650;
   color: var(--text-muted);
   transition: color 0.14s ease;
+}
+
+.developer__avatar {
+  width: 13px;
+  height: 13px;
+  fill: currentColor;
+  opacity: 0.85;
+  flex: none;
 }
 
 .developer__name:hover {

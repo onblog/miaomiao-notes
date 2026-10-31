@@ -105,6 +105,7 @@ const defaults = {
   fontSize: 15,
   autoSaveDelay: 700,
   quitOnAllWindowsClosed: false,
+  launchAtLogin: false,
   restoreLastNote: true,
   sortBy: 'mtime',
   showSnippet: true,

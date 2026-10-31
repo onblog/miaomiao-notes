@@ -23,6 +23,8 @@ const DEFAULTS = {
   autoSaveDelay: 700,
   /** quit the app when the last window closes (macOS default is to stay) */
   quitOnAllWindowsClosed: false,
+  /** start the app when the user logs in (off by default) */
+  launchAtLogin: false,
   /** re-open the last edited note on launch */
   restoreLastNote: true,
   /** 'mtime' | 'ctime' | 'title' */
@@ -89,6 +91,7 @@ function sanitize(input) {
   if (typeof input.quitOnAllWindowsClosed === 'boolean') {
     out.quitOnAllWindowsClosed = input.quitOnAllWindowsClosed;
   }
+  if (typeof input.launchAtLogin === 'boolean') out.launchAtLogin = input.launchAtLogin;
   if (typeof input.restoreLastNote === 'boolean') out.restoreLastNote = input.restoreLastNote;
 
   if (['mtime', 'ctime', 'title'].includes(input.sortBy)) out.sortBy = input.sortBy;

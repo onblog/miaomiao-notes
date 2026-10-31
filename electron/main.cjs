@@ -274,6 +274,23 @@ function bootServices() {
   return { vault: vaultDir, created, icloud: isICloudAvailable() };
 }
 
+/**
+ * 「开机自启动」落到系统登录项。
+ * dev 模式不写系统状态，否则会把 Electron 本体塞进登录项；
+ * 系统拒绝时只吞掉错误，不能让设置保存因此失败。
+ */
+function syncLaunchAtLogin(enabled) {
+  if (!app.isPackaged) return;
+  try {
+    const desired = Boolean(enabled);
+    if (app.getLoginItemSettings().openAtLogin !== desired) {
+      app.setLoginItemSettings({ openAtLogin: desired });
+    }
+  } catch {
+    /* 用户可能在系统设置里锁定了登录项，忽略即可 */
+  }
+}
+
 function createWindow() {
   const current = settings.read();
   nativeTheme.themeSource = current.theme;
@@ -426,9 +443,11 @@ function registerIpc() {
 
   handle('settings:get', () => settings.read());
   handle('settings:set', (patch) => {
-    const previous = settings.read().language;
+    const before = settings.read();
+    const previous = before.language;
     const next = settings.write(patch || {});
     nativeTheme.themeSource = next.theme;
+    if (next.launchAtLogin !== before.launchAtLogin) syncLaunchAtLogin(next.launchAtLogin);
     if (next.language !== previous) buildMenu();
     for (const win of BrowserWindow.getAllWindows()) {
       win.webContents.send('settings:changed', next);
@@ -704,6 +723,8 @@ function buildMenu() {
 app.setName('喵喵笔记');
 
 app.whenReady().then(() => {
+  // 让系统登录项与应用内的开关保持一致（自愈：外部被关掉时按设置补回）
+  syncLaunchAtLogin(settings.read().launchAtLogin);
   app.setAboutPanelOptions({
     applicationName: '喵喵笔记',
     applicationVersion: app.getVersion(),

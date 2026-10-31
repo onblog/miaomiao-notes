@@ -961,6 +961,13 @@ function openSettings() {
           </div>
           <div class="settings__row">
             <div class="settings__label">
+              <strong>${t('settings.launchAtLogin')}</strong>
+              <span>${t('settings.launchAtLogin.desc')}</span>
+            </div>
+            <button class="switch" type="button" role="switch" data-key="launchAtLogin"></button>
+          </div>
+          <div class="settings__row">
+            <div class="settings__label">
               <strong>${t('settings.restore')}</strong>
               <span>${t('settings.restore.desc')}</span>
             </div>
@@ -1041,7 +1048,13 @@ function openSettings() {
           data-i18n-title="settings.developerProfile"
           title="在 GitHub 上查看作者"
         >
-          Martin
+          <svg class="developer__avatar" viewBox="0 0 24 24" aria-hidden="true">
+            <ellipse cx="7" cy="7.5" rx="2.1" ry="2.6" />
+            <ellipse cx="12" cy="6" rx="2.1" ry="2.7" />
+            <ellipse cx="17" cy="7.5" rx="2.1" ry="2.6" />
+            <path d="M12 11.2c2.9 0 5.2 1.9 5.2 4.2 0 2.2-2.3 3.4-5.2 3.4s-5.2-1.2-5.2-3.4c0-2.3 2.3-4.2 5.2-4.2Z" />
+          </svg>
+          <span>Martin</span>
         </button>
         <button class="developer__item" type="button" id="js-email">
           <svg viewBox="0 0 24 24" aria-hidden="true">
