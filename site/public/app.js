@@ -108,6 +108,8 @@ const messages = {
     'hero.desc': '笔记就是 iCloud Drive 里的普通 .md 文件，多台 Mac 自动同步。完全免费，不需要登录。',
     'download.arm64': '下载 Apple Silicon 版',
     'download.x64': '下载 Intel 版',
+    'shot.light': '浅色主题 · 边写边读',
+    'shot.dark': '深色主题 · 边写边读',
     'download.hint': 'macOS 12 及以上 · 首次打开若被系统拦住：系统设置 → 隐私与安全性 →「仍要打开」',
     'download.latest': '最新版本',
     'download.direct': '直接下载',
@@ -155,6 +157,8 @@ const messages = {
       'Your notes are plain .md files inside iCloud Drive, synced across your Macs by the system. Completely free, no sign-up needed.',
     'download.arm64': 'Download for Apple Silicon',
     'download.x64': 'Download for Intel',
+    'shot.light': 'Light theme · write and read side by side',
+    'shot.dark': 'Dark theme · write and read side by side',
     'download.hint':
       'macOS 12 or later · if the first launch is blocked: System Settings → Privacy & Security → Open Anyway',
     'download.latest': 'Latest',

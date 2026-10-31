@@ -25,6 +25,8 @@
 
 <img src="site/public/assets/screenshot.png" alt="喵喵笔记界面" />
 
+<img src="site/public/assets/screenshot-dark.png" alt="Miaomiao Notes interface dark theme" />
+
 ## Why another notes app?
 
 Because your notes should be **files**, not someone else's database.

@@ -244,12 +244,29 @@ main {
   padding: 0;
 }
 
+.shot {
+  display: grid;
+  gap: 26px;
+}
+
+.shot__figure {
+  margin: 0;
+}
+
 .shot__image {
+  display: block;
   width: 100%;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
   background: var(--surface);
+}
+
+.shot__caption {
+  margin: 10px 0 0;
+  padding-left: 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------------------ features */

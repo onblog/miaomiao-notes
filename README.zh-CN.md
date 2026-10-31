@@ -25,6 +25,8 @@
 
 <img src="site/public/assets/screenshot.png" alt="喵喵笔记界面" />
 
+<img src="site/public/assets/screenshot-dark.png" alt="喵喵笔记界面 dark theme" />
+
 ## 为什么又做一个笔记软件？
 
 因为笔记应该是**文件**，而不是别人数据库里的一行记录。
