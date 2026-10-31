@@ -6,6 +6,12 @@
 # background outside that plate: flattening it onto opaque white shows up as an
 # outer white frame in Finder / Dock / Launchpad.
 #
+# Density rule: the cat fills ~93% of the canvas (>=3% clear of the plate edge
+# on every side) so the icon does not read as a white square with a small cat in
+# the middle. Keep that ratio when swapping the artwork; the plate is pure white
+# and every pixel with alpha < 250 must carry white RGB, otherwise the leftover
+# dark residue shows up once the master is flattened (apple-touch-icon, og).
+#
 # History: this used to render build/icon.svg with headless Chrome. The artwork
 # is now an illustration rather than a vector, so the PNG is the source of truth
 # and the script only needs sips + iconutil plus ImageMagick for the alpha guard.
