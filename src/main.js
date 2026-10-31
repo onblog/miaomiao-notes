@@ -590,6 +590,12 @@ async function noteMenu(path) {
  */
 const VIEW_ORDER = ['edit', 'preview', 'split'];
 
+/**
+ * 正文字体候选：全部是 macOS 自带、可直接用 CSS 命中的经典字体，
+ * 具体字体栈定义在 styles/tokens.css 的 --font-<id>。
+ */
+const CONTENT_FONT_IDS = ['pingfang', 'songti', 'kaiti', 'yuanti', 'hiragino'];
+
 const VIEW_BUTTON_TITLE = {
   edit: 'action.preview',
   preview: 'action.split',
@@ -787,11 +793,23 @@ function onResizerKey(event) {
 
 /* ---------------------------------------------------------------- settings */
 
+/**
+ * 打开中的设置面板的刷新函数。设置面板没有草稿，所有改动即时生效，
+ * 所以任何一次 applySettings 都要把面板里的勾选态同步过来。
+ */
+let syncSettingsDialog = null;
+
+/** 当前打开的设置面板的关闭函数。菜单和按钮都可能触发，避免叠出两层。 */
+let closeSettingsDialog = null;
+
 /** Apply settings to the live document. Called on boot and after every change. */
 function applySettings(next) {
   state.settings = next;
   document.documentElement.dataset.theme = next.theme === 'dark' ? 'dark' : 'cream';
   document.documentElement.style.setProperty('--editor-font-size', `${next.fontSize}px`);
+  // 正文字体：写作区和阅读区共用一套，值只存 id，字体栈交给 tokens.css
+  const fontId = CONTENT_FONT_IDS.includes(next.fontFamily) ? next.fontFamily : 'pingfang';
+  document.documentElement.style.setProperty('--font-content', `var(--font-${fontId})`);
   document.body.classList.toggle('reduce-motion', Boolean(next.reduceMotion));
 
   // 主题变了，mermaid 图表要按新配色重画（浅色/深色两套主题变量）
@@ -818,6 +836,7 @@ function applySettings(next) {
   }
 
   syncQuickToggles();
+  syncSettingsDialog?.();
 }
 
 /**
@@ -833,10 +852,16 @@ function syncQuickToggles() {
 }
 
 /** 保存一个设置项并让界面立即跟随；不经过设置面板。 */
+let settingsWriteToken = 0;
+
 async function saveSettings(patch) {
   if (!api) return;
 
+  // 连点几个开关时，只认最后一次写入的结果，避免旧结果把界面冲回去
+  const token = (settingsWriteToken += 1);
   const result = await api.settings.set(patch);
+  if (token !== settingsWriteToken) return;
+
   if (!result.ok) {
     toast(t('toast.settingsFailed'), true);
     return;
@@ -853,174 +878,203 @@ function toggleTheme() {
 }
 
 function openSettings() {
-  const original = { ...(state.settings || {}) };
-  const draft = { ...original };
+  closeSettingsDialog?.();
 
   const backdrop = document.createElement('div');
   backdrop.className = 'modal-backdrop';
   backdrop.innerHTML = `
-    <div class="settings" role="dialog" aria-modal="true">
+    <div class="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <header class="settings__head">
-        <h2 class="settings__title">${t('settings.title')}</h2>
+        <div class="settings__heading">
+          <h2 class="settings__title" id="settings-title" data-i18n="settings.title">${t('settings.title')}</h2>
+          <!-- 面板里没有保存/取消：每一项都即时落盘，这里把规则写清楚 -->
+          <p class="settings__subtitle" data-i18n="settings.instantHint">${t('settings.instantHint')}</p>
+        </div>
+        <button
+          class="icon-button settings__close"
+          type="button"
+          id="settings-close"
+          data-i18n-title="settings.close"
+          data-i18n-aria="settings.close"
+          title="关闭"
+          aria-label="关闭"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m6.6 6.6 10.8 10.8M17.4 6.6 6.6 17.4" />
+          </svg>
+        </button>
       </header>
       <div class="settings__body">
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.appearance')}</p>
+          <p class="settings__group-title" data-i18n="settings.appearance">${t('settings.appearance')}</p>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.theme')}</strong>
-              <span>${t('settings.theme.desc')}</span>
+              <strong data-i18n="settings.theme">${t('settings.theme')}</strong>
+              <span data-i18n="settings.theme.desc">${t('settings.theme.desc')}</span>
             </div>
             <div class="segmented" data-key="theme">
-              <button type="button" data-value="light">${t('settings.theme.light')}</button>
-              <button type="button" data-value="dark">${t('settings.theme.dark')}</button>
+              <button type="button" data-value="light" data-i18n="settings.theme.light">${t('settings.theme.light')}</button>
+              <button type="button" data-value="dark" data-i18n="settings.theme.dark">${t('settings.theme.dark')}</button>
             </div>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.fontSize')}</strong>
+              <strong data-i18n="settings.fontSize">${t('settings.fontSize')}</strong>
               <span class="js-size-label"></span>
             </div>
             <div class="segmented" data-key="fontSize">
-              <button type="button" data-value="13">${t('settings.fontSize.small')}</button>
-              <button type="button" data-value="15">${t('settings.fontSize.medium')}</button>
-              <button type="button" data-value="17">${t('settings.fontSize.large')}</button>
+              <button type="button" data-value="13" data-i18n="settings.fontSize.small">${t('settings.fontSize.small')}</button>
+              <button type="button" data-value="15" data-i18n="settings.fontSize.medium">${t('settings.fontSize.medium')}</button>
+              <button type="button" data-value="17" data-i18n="settings.fontSize.large">${t('settings.fontSize.large')}</button>
+            </div>
+          </div>
+          <div class="settings__row is-stacked">
+            <div class="settings__label">
+              <strong data-i18n="settings.fontFamily">${t('settings.fontFamily')}</strong>
+              <span data-i18n="settings.fontFamily.desc">${t('settings.fontFamily.desc')}</span>
+            </div>
+            <!-- 每个字库用自己的字体显示，选之前就能看出差别 -->
+            <div class="segmented segmented--fonts" data-key="fontFamily">
+              ${CONTENT_FONT_IDS.map(
+                (id) =>
+                  `<button type="button" data-value="${id}" style="font-family: var(--font-${id})" data-i18n="settings.fontFamily.${id}">${t(`settings.fontFamily.${id}`)}</button>`,
+              ).join('')}
             </div>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.reduceMotion')}</strong>
-              <span>${t('settings.reduceMotion.desc')}</span>
+              <strong data-i18n="settings.reduceMotion">${t('settings.reduceMotion')}</strong>
+              <span data-i18n="settings.reduceMotion.desc">${t('settings.reduceMotion.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="reduceMotion"></button>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.language')}</strong>
-              <span>${t('settings.language.desc')}</span>
+              <strong data-i18n="settings.language">${t('settings.language')}</strong>
+              <span data-i18n="settings.language.desc">${t('settings.language.desc')}</span>
             </div>
             <div class="segmented" data-key="language">
-              <button type="button" data-value="zh">${t('settings.language.zh')}</button>
-              <button type="button" data-value="en">${t('settings.language.en')}</button>
+              <button type="button" data-value="zh" data-i18n="settings.language.zh">${t('settings.language.zh')}</button>
+              <button type="button" data-value="en" data-i18n="settings.language.en">${t('settings.language.en')}</button>
             </div>
           </div>
         </section>
 
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.list')}</p>
+          <p class="settings__group-title" data-i18n="settings.list">${t('settings.list')}</p>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.sortBy')}</strong>
-              <span>${t('settings.sortBy.desc')}</span>
+              <strong data-i18n="settings.sortBy">${t('settings.sortBy')}</strong>
+              <span data-i18n="settings.sortBy.desc">${t('settings.sortBy.desc')}</span>
             </div>
             <div class="segmented" data-key="sortBy">
-              <button type="button" data-value="mtime">${t('settings.sort.mtime')}</button>
-              <button type="button" data-value="ctime">${t('settings.sort.ctime')}</button>
-              <button type="button" data-value="title">${t('settings.sort.title')}</button>
+              <button type="button" data-value="mtime" data-i18n="settings.sort.mtime">${t('settings.sort.mtime')}</button>
+              <button type="button" data-value="ctime" data-i18n="settings.sort.ctime">${t('settings.sort.ctime')}</button>
+              <button type="button" data-value="title" data-i18n="settings.sort.title">${t('settings.sort.title')}</button>
             </div>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.showSnippet')}</strong>
-              <span>${t('settings.showSnippet.desc')}</span>
+              <strong data-i18n="settings.showSnippet">${t('settings.showSnippet')}</strong>
+              <span data-i18n="settings.showSnippet.desc">${t('settings.showSnippet.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="showSnippet"></button>
           </div>
         </section>
 
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.editor')}</p>
+          <p class="settings__group-title" data-i18n="settings.editor">${t('settings.editor')}</p>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.defaultView')}</strong>
-              <span>${t('settings.defaultView.desc')}</span>
+              <strong data-i18n="settings.defaultView">${t('settings.defaultView')}</strong>
+              <span data-i18n="settings.defaultView.desc">${t('settings.defaultView.desc')}</span>
             </div>
             <div class="segmented" data-key="defaultView">
-              <button type="button" data-value="edit">${t('settings.defaultView.edit')}</button>
-              <button type="button" data-value="preview">${t('settings.defaultView.preview')}</button>
-              <button type="button" data-value="split">${t('settings.defaultView.split')}</button>
+              <button type="button" data-value="edit" data-i18n="settings.defaultView.edit">${t('settings.defaultView.edit')}</button>
+              <button type="button" data-value="preview" data-i18n="settings.defaultView.preview">${t('settings.defaultView.preview')}</button>
+              <button type="button" data-value="split" data-i18n="settings.defaultView.split">${t('settings.defaultView.split')}</button>
             </div>
           </div>
         </section>
 
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.behavior')}</p>
+          <p class="settings__group-title" data-i18n="settings.behavior">${t('settings.behavior')}</p>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.telemetry')}</strong>
-              <span>${t('settings.telemetry.desc')}</span>
+              <strong data-i18n="settings.telemetry">${t('settings.telemetry')}</strong>
+              <span data-i18n="settings.telemetry.desc">${t('settings.telemetry.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="telemetry"></button>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.quit')}</strong>
-              <span>${t('settings.quit.desc')}</span>
+              <strong data-i18n="settings.quit">${t('settings.quit')}</strong>
+              <span data-i18n="settings.quit.desc">${t('settings.quit.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="quitOnAllWindowsClosed"></button>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.launchAtLogin')}</strong>
-              <span>${t('settings.launchAtLogin.desc')}</span>
+              <strong data-i18n="settings.launchAtLogin">${t('settings.launchAtLogin')}</strong>
+              <span data-i18n="settings.launchAtLogin.desc">${t('settings.launchAtLogin.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="launchAtLogin"></button>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.restore')}</strong>
-              <span>${t('settings.restore.desc')}</span>
+              <strong data-i18n="settings.restore">${t('settings.restore')}</strong>
+              <span data-i18n="settings.restore.desc">${t('settings.restore.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="restoreLastNote"></button>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.autoSave')}</strong>
+              <strong data-i18n="settings.autoSave">${t('settings.autoSave')}</strong>
               <span class="js-delay-label"></span>
             </div>
             <div class="segmented" data-key="autoSaveDelay">
-              <button type="button" data-value="300">${t('settings.autoSave.fast')}</button>
-              <button type="button" data-value="700">${t('settings.autoSave.normal')}</button>
-              <button type="button" data-value="1500">${t('settings.autoSave.slow')}</button>
+              <button type="button" data-value="300" data-i18n="settings.autoSave.fast">${t('settings.autoSave.fast')}</button>
+              <button type="button" data-value="700" data-i18n="settings.autoSave.normal">${t('settings.autoSave.normal')}</button>
+              <button type="button" data-value="1500" data-i18n="settings.autoSave.slow">${t('settings.autoSave.slow')}</button>
             </div>
           </div>
         </section>
 
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.storage')}</p>
+          <p class="settings__group-title" data-i18n="settings.storage">${t('settings.storage')}</p>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.vault')}</strong>
+              <strong data-i18n="settings.vault">${t('settings.vault')}</strong>
               <span id="js-vault-path">${state.vaultPath || '—'}</span>
             </div>
             <div class="settings__actions">
-              <button class="jw-btn" type="button" id="js-change-vault">${t('settings.vault.change')}</button>
+              <button class="jw-btn" type="button" id="js-change-vault" data-i18n="settings.vault.change">${t('settings.vault.change')}</button>
             </div>
           </div>
         </section>
 
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.about')}</p>
+          <p class="settings__group-title" data-i18n="settings.about">${t('settings.about')}</p>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.version')}</strong>
+              <strong data-i18n="settings.version">${t('settings.version')}</strong>
               <span id="js-version-line">v${state.appVersion || '—'}</span>
             </div>
             <div class="settings__actions" id="js-update-actions">
-              <button class="jw-btn" type="button" id="js-check-update">${t('settings.checkUpdate')}</button>
+              <button class="jw-btn" type="button" id="js-check-update" data-i18n="settings.checkUpdate">${t('settings.checkUpdate')}</button>
             </div>
           </div>
           <div class="settings__row">
             <div class="settings__label">
-              <strong>${t('settings.autoUpdate')}</strong>
-              <span>${t('settings.autoUpdate.desc')}</span>
+              <strong data-i18n="settings.autoUpdate">${t('settings.autoUpdate')}</strong>
+              <span data-i18n="settings.autoUpdate.desc">${t('settings.autoUpdate.desc')}</span>
             </div>
             <button class="switch" type="button" role="switch" data-key="autoCheckUpdates"></button>
           </div>
         </section>
 
         <section class="settings__group">
-          <p class="settings__group-title">${t('settings.support')}</p>
+          <p class="settings__group-title" data-i18n="settings.support">${t('settings.support')}</p>
           <button class="sponsor" type="button" id="js-sponsor">
             <svg class="sponsor__cat" viewBox="0 0 64 64" aria-hidden="true">
               <path class="sponsor__ear" d="M18 26 14 10l14 8Z" />
@@ -1033,8 +1087,8 @@ function openSettings() {
               <ellipse class="sponsor__blush" cx="43" cy="38" rx="3" ry="1.8" />
             </svg>
             <span class="sponsor__text">
-              <strong>${t('settings.sponsor.title')}</strong>
-              <em>${t('settings.sponsor.desc')}</em>
+              <strong data-i18n="settings.sponsor.title">${t('settings.sponsor.title')}</strong>
+              <em data-i18n="settings.sponsor.desc">${t('settings.sponsor.desc')}</em>
             </span>
             <span class="sponsor__arrow" aria-hidden="true">→</span>
           </button>
@@ -1070,13 +1124,6 @@ function openSettings() {
           <span>GitHub</span>
         </button>
       </div>
-      <footer class="settings__foot">
-        <button class="link-button" type="button" id="settings-reset">${t('settings.reset')}</button>
-        <div class="settings__actions">
-          <button class="modal__cancel" type="button" id="settings-cancel">${t('settings.cancel')}</button>
-          <button class="modal__confirm" type="button" id="settings-save">${t('settings.save')}</button>
-        </div>
-      </footer>
     </div>`;
 
   const sizeLabel = backdrop.querySelector('.js-size-label');
@@ -1084,9 +1131,11 @@ function openSettings() {
   const versionLine = backdrop.querySelector('#js-version-line');
   const updateActions = backdrop.querySelector('#js-update-actions');
 
+  /** 面板里的勾选态一律从 state.settings 推导：没有草稿，就没有“保存/取消” */
   const paint = () => {
-    sizeLabel.textContent = `${draft.fontSize}px`;
-    delayLabel.textContent = `${draft.autoSaveDelay}ms`;
+    const current = state.settings || {};
+    if (sizeLabel) sizeLabel.textContent = `${current.fontSize}px`;
+    if (delayLabel) delayLabel.textContent = `${current.autoSaveDelay}ms`;
 
     for (const group of backdrop.querySelectorAll('.segmented')) {
       const key = group.dataset.key;
@@ -1094,64 +1143,52 @@ function openSettings() {
         const raw = button.dataset.value;
         const numeric = key === 'fontSize' || key === 'autoSaveDelay';
         const value = numeric ? Number(raw) : raw;
-        button.classList.toggle('is-active', draft[key] === value);
+        button.classList.toggle('is-active', current[key] === value);
       }
     }
     for (const toggle of backdrop.querySelectorAll('.switch')) {
-      toggle.setAttribute('aria-checked', String(Boolean(draft[toggle.dataset.key])));
+      toggle.setAttribute('aria-checked', String(Boolean(current[toggle.dataset.key])));
     }
   };
 
-  const close = (applied) => {
+  const close = () => {
     backdrop.remove();
     document.removeEventListener('keydown', onKey);
-    if (!applied) applySettings(original);
+    if (syncSettingsDialog === paint) syncSettingsDialog = null;
+    if (closeSettingsDialog === close) closeSettingsDialog = null;
   };
 
   const onKey = (event) => {
-    if (event.key === 'Escape') close(false);
+    if (event.key === 'Escape') close();
   };
 
+  // 点遮罩关闭（面板外的空白处），面板内部不误触
   backdrop.addEventListener('click', (event) => {
+    if (event.target === backdrop) {
+      close();
+      return;
+    }
+
     const segment = event.target.closest('.segmented button');
     if (segment) {
       const key = segment.parentElement.dataset.key;
       const raw = segment.dataset.value;
       const numeric = key === 'fontSize' || key === 'autoSaveDelay';
-      draft[key] = numeric ? Number(raw) : raw;
-      applySettings({ ...original, ...draft });
-      paint();
+      const value = numeric ? Number(raw) : raw;
+      // 视图类设置要真的切过去，不然“即时生效”只落了个值
+      if (key === 'defaultView' && VIEW_ORDER.includes(value)) applyViewMode(value);
+      saveSettings({ [key]: value });
       return;
     }
 
     const toggle = event.target.closest('.switch');
     if (toggle) {
       const key = toggle.dataset.key;
-      draft[key] = !draft[key];
-      paint();
+      saveSettings({ [key]: !state.settings?.[key] });
     }
   });
 
-  backdrop.querySelector('#settings-cancel').addEventListener('click', () => close(false));
-  backdrop.querySelector('#settings-reset').addEventListener('click', async () => {
-    const result = await api.settings.reset();
-    if (result.ok) {
-      Object.assign(draft, result.data);
-      applySettings(result.data);
-      paint();
-      toast('已恢复默认设置');
-    }
-  });
-  backdrop.querySelector('#settings-save').addEventListener('click', async () => {
-    const result = await api.settings.set(draft);
-    if (!result.ok) {
-      toast(result.error || '保存设置失败', true);
-      return;
-    }
-    applySettings(result.data);
-    close(true);
-    toast('设置已保存');
-  });
+  backdrop.querySelector('#settings-close').addEventListener('click', close);
 
   backdrop.querySelector('#js-sponsor')?.addEventListener('click', () => {
     api.app.openProfile();
@@ -1191,7 +1228,7 @@ function openSettings() {
     state.vaultPath = result.data.path;
     if (vaultPathLabel) vaultPathLabel.textContent = result.data.path;
     toast(t('settings.vault.switched'));
-    backdrop.remove();
+    close();
   });
 
   const checkButton = backdrop.querySelector('#js-check-update');
@@ -1204,7 +1241,7 @@ function openSettings() {
     checkButton.textContent = t('settings.checkUpdate');
 
     if (!result.ok) {
-      sizeLabel && (versionLine.textContent = t('settings.updateFailed'));
+      versionLine.textContent = t('settings.updateFailed');
       return;
     }
 
@@ -1222,6 +1259,8 @@ function openSettings() {
     updateActions.replaceChildren(download);
   });
 
+  syncSettingsDialog = paint;
+  closeSettingsDialog = close;
   document.addEventListener('keydown', onKey);
   document.body.appendChild(backdrop);
   paint();

@@ -23,8 +23,21 @@
   --font-ui: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
     'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
-  --font-reading: -apple-system, 'PingFang SC', 'Songti SC', 'Apple Color Emoji',
+
+  /* 正文字体（写作区 + 阅读区）：设置页在下面这几套里切换，全部是 macOS 自带字体。
+     --font-content 是当前生效的那一套，由 applySettings() 指向具体候选。
+     每套末尾都留彩色 emoji 字体，避免 ⚠️ ✈️ ❤️ ☀️ 退化成单色字形。 */
+  --font-content: var(--font-ui);
+  --font-pingfang: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Apple Color Emoji', 'Noto Color Emoji', sans-serif;
+  --font-songti: 'Songti SC', STSong, 'Times New Roman', 'Apple Color Emoji',
     'Noto Color Emoji', serif;
+  --font-kaiti: 'Kaiti SC', STKaiti, 'Songti SC', 'Apple Color Emoji', 'Noto Color Emoji',
+    serif;
+  --font-yuanti: 'Yuanti SC', 'PingFang SC', 'Hiragino Sans GB', 'Apple Color Emoji',
+    'Noto Color Emoji', sans-serif;
+  --font-hiragino: 'Hiragino Sans GB', 'PingFang SC', 'Heiti SC', 'Apple Color Emoji',
+    'Noto Color Emoji', sans-serif;
   --editor-font-size: 15px;
 
   /* 滚动条：视觉 2px，颜色跟着主题强调色走（明暗主题自动适配）。
@@ -46,8 +59,8 @@
    主题：中性纸白（light）
    键名沿用 'cream'，是为了兼容老的设置与已存的 data-theme 值；
    实际配色已从奶油暖黄改为冷调纸白，表面饱和度 55.6% → 15.8%。
-   对比度：正文 10.67:1、标题 15.41:1、次要 5.18:1、提示 4.76:1、
-   行内代码 7.44:1、链接 6.89:1、激活项 4.64:1，全部过 WCAG AA。
+   对比度：正文 11.50:1、标题 15.41:1、次要 5.93:1、提示 5.26:1、
+   行内代码 7.44:1、链接 6.89:1、激活项 5.12:1，全部过 WCAG AA。
    ------------------------------------------------------------------ */
 
 [data-theme='cream'] {
@@ -63,11 +76,12 @@
 
   /* 文字 */
   --text-strong: #1f2328;
-  --text-body: #383d44;
-  /* 5.18:1：摘要、日期、路径这类次要文字 */
-  --text-muted: #656c75;
-  /* 4.76:1：时间戳、占位符、设置提示，刚好过 AA 小字号 */
-  --text-faint: #6a727b;
+  /* 11.50:1 —— 正文再亮一点就显得发灰，这一档是长文阅读的底线 */
+  --text-body: #34383e;
+  /* 5.93:1：摘要、日期、路径这类次要文字 */
+  --text-muted: #5c636c;
+  /* 5.26:1：时间戳、占位符、设置提示，小字号也要看得清 */
+  --text-faint: #646b74;
   --text-inverse: #ffffff;
 
   /* 品牌（暖橘保留为品牌重音，不再参与正文与语法色） */
@@ -115,7 +129,7 @@
    主题：深墨（dark）
    冷炭底 #131519，和白天那张纸是同一条中性色温线；
    层级靠 6–8% 的明度差拉开，不靠暖色饱和。
-   对比度：正文 10.63:1、标题 15.28:1、次要 6.5:1、提示 5.59:1、
+   对比度：正文 11.56:1、标题 15.28:1、次要 7.71:1、提示 6.59:1、
    行内代码 9.14:1、链接 8.74:1。
    ------------------------------------------------------------------ */
 
@@ -130,9 +144,10 @@
   --surface-search: rgba(200, 215, 235, 0.06);
 
   --text-strong: #e8ebef;
-  --text-body: #c0c6ce;
-  --text-muted: #939ba5;
-  --text-faint: #878f99;
+  /* 11.56:1 —— 深色底上的正文不用再压暗，否则整屏像蒙了一层灰 */
+  --text-body: #c9ced6;
+  --text-muted: #a2a9b3;
+  --text-faint: #949ca7;
   --text-inverse: #14171b;
 
   --accent: #e08a62;

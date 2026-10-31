@@ -103,6 +103,7 @@ const defaults = {
   autoCheckUpdates: true,
   theme: 'light',
   fontSize: 15,
+  fontFamily: 'pingfang',
   autoSaveDelay: 700,
   quitOnAllWindowsClosed: false,
   launchAtLogin: false,

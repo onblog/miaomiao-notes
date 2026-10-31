@@ -578,6 +578,8 @@ body.is-resizing {
   min-height: 0;
   overflow: auto;
   padding: 18px 24px 40px;
+  /* 阅读区跟随「正文字体」设置，代码块仍然用等宽字体 */
+  font-family: var(--font-content);
   font-size: 15px;
   line-height: 1.65;
   color: var(--text-body);
@@ -973,9 +975,17 @@ body.is-resizing {
 
 .settings__head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 18px 20px 10px;
+  gap: 12px;
+  padding: 18px 16px 10px 20px;
+}
+
+.settings__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .settings__title {
@@ -983,6 +993,25 @@ body.is-resizing {
   font-size: 15px;
   font-weight: 680;
   color: var(--text-strong);
+}
+
+.settings__subtitle {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* 关闭按钮：面板唯一的出口，改完即生效，不需要“保存/取消” */
+.settings__close {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin: 0 -2px 0 0;
+}
+
+.settings__close svg {
+  width: 15px;
+  height: 15px;
 }
 
 .settings__body {
@@ -1040,6 +1069,19 @@ body.is-resizing {
   color: var(--text-muted);
 }
 
+/* 正文字体一行：标签在上、字库横排在下的通栏布局，每个选项用自己的字体显示 */
+.settings__row.is-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.settings__row.is-stacked .settings__label {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 8px;
+}
+
 /* 分段控件 */
 .segmented {
   display: inline-flex;
@@ -1062,6 +1104,19 @@ body.is-resizing {
   color: var(--text-strong);
   font-weight: 600;
   box-shadow: var(--shadow-tight);
+}
+
+.segmented--fonts {
+  display: flex;
+  width: 100%;
+}
+
+.segmented--fonts button {
+  flex: 1;
+  padding: 7px 4px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 /* 开关 */
@@ -1096,20 +1151,6 @@ body.is-resizing {
 
 .switch[aria-checked='true']::after {
   transform: translateX(16px);
-}
-
-.settings__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 20px 16px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.settings__hint {
-  font-size: 11px;
-  color: var(--text-faint);
 }
 
 .settings__actions {

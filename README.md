@@ -41,11 +41,11 @@ Because your notes should be **files**, not someone else's database.
 | Area | What you get |
 | --- | --- |
 | Layout | Folder column, note column, editor — native macOS chrome; position, size, zoom and fullscreen are remembered across relaunches |
-| Editing | CodeMirror 6, Markdown syntax highlighting, live preview (⌘E) |
+| Editing | CodeMirror 6, monochrome Markdown highlighting, live preview (⌘E), five macOS body fonts (PingFang, Songti, Kaiti, Yuanti, Hiragino) |
 | Storage | Plain `.md` files; iCloud Drive when available, otherwise `~/Documents` |
 | Sync | macOS iCloud Drive, no extra service |
 | Safety | Atomic writes, `.trash` soft delete, iCloud conflict detection |
-| Interface | Chinese / English and light / dark, with two one-click icon buttons in the editor header |
+| Interface | Chinese / English and light / dark, with two one-click icon buttons in the editor header; settings take effect instantly and save themselves |
 | Updates | Manual check in Settings, plus one silent check per day |
 
 ## Requirements

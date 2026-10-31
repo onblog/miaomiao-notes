@@ -3,7 +3,7 @@
 .cm-editor {
   height: 100%;
   background: var(--surface-content);
-  font-family: var(--font-ui);
+  font-family: var(--font-content);
   font-size: var(--editor-font-size, 15px);
   color: var(--text-body);
 }
@@ -21,10 +21,11 @@
  * CodeMirror 运行时会注入 `.cm-scroller{font-family:monospace}`，权重和上面这条
  * 一样又排在后面，导致正文其实一直跑在 Menlo 上：拉丁字母变等宽，而且
  * ⚠️ ✈️ ❤️ ☀️ 这类默认「文本表现」的 emoji 会被画成单色文字字形，看着像不支持 emoji。
- * 加 .editor-host 前缀压过注入样式，正文才真正用回 --font-ui（含彩色 emoji 字体）。
+ * 加 .editor-host 前缀压过注入样式，正文才真正用回 --font-content（设置页可切换的字体，
+ * 每套都含彩色 emoji 字体）。
  */
 .editor-host .cm-scroller {
-  font-family: var(--font-ui);
+  font-family: var(--font-content);
 }
 
 /* 加 .editor-host 前缀是为了压过 CodeMirror 运行时注入的 `.cm-content{padding:4px 0}` */
@@ -143,10 +144,10 @@
    由 editor.js 的 codeDecorations 打上 class。 */
 
 .cm-editor .cm-inline-code {
-  color: var(--code-inline-text);
+  color: var(--text-body);
   border-radius: 4px;
   background: var(--code-inline-bg);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 16%, transparent);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
 }
 
 .cm-editor .cm-code-text {

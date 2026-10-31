@@ -19,6 +19,8 @@ const DEFAULTS = {
   theme: 'light',
   /** editor font size in px */
   fontSize: 15,
+  /** 'pingfang' | 'songti' | 'kaiti' | 'yuanti' | 'hiragino' — macOS built-in body fonts */
+  fontFamily: 'pingfang',
   /** autosave debounce in ms */
   autoSaveDelay: 700,
   /** quit the app when the last window closes (macOS default is to stay) */
@@ -44,6 +46,7 @@ const DEFAULTS = {
 };
 
 const VIEW_MODES = ['edit', 'preview', 'split'];
+const FONT_FAMILIES = ['pingfang', 'songti', 'kaiti', 'yuanti', 'hiragino'];
 
 const MIN_BOUND = { width: 480, height: 320 };
 const MAX_BOUND = 10000;
@@ -84,6 +87,8 @@ function sanitize(input) {
 
   const size = Number(input.fontSize);
   if (Number.isFinite(size)) out.fontSize = Math.min(22, Math.max(12, Math.round(size)));
+
+  if (FONT_FAMILIES.includes(input.fontFamily)) out.fontFamily = input.fontFamily;
 
   const delay = Number(input.autoSaveDelay);
   if (Number.isFinite(delay)) out.autoSaveDelay = Math.min(3000, Math.max(200, Math.round(delay)));

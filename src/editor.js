@@ -19,24 +19,27 @@ import { searchKeymap } from '@codemirror/search';
 import { tags } from '@lezer/highlight';
 
 /**
- * 暖色语法高亮。CodeMirror 默认的蓝色语法色和奶油底色冲突，
- * 所以这里整套替换掉，保持「纸感」的统一。
+ * 单色语法着色。写作区只留「灰度 + 字重 + 字号」的层次：
+ * 标题更黑更粗、标记符号变浅灰、链接加下划线，不出现任何彩色文字 ——
+ * 以前列表项整行是橘色，写东西时很干扰视线。
  */
-const warmHighlight = HighlightStyle.define([
+const plainHighlight = HighlightStyle.define([
   { tag: tags.heading1, color: 'var(--text-strong)', fontWeight: '700', fontSize: '1.32em' },
   { tag: tags.heading2, color: 'var(--text-strong)', fontWeight: '700', fontSize: '1.18em' },
   { tag: tags.heading3, color: 'var(--text-body)', fontWeight: '650', fontSize: '1.08em' },
   { tag: tags.strong, color: 'var(--text-strong)', fontWeight: '700' },
-  { tag: tags.emphasis, fontStyle: 'italic', color: 'var(--text-muted)' },
+  { tag: tags.emphasis, fontStyle: 'italic' },
   { tag: tags.strikethrough, textDecoration: 'line-through', color: 'var(--text-faint)' },
-  { tag: tags.link, color: 'var(--text-link)' },
-  // GFM 会把 work@10.32.140.59 识别成 email 链接、http://… 识别成 URL，
-  // 以前一律用 text-faint，结果“深色不亮、浅色不黑”。改用链接色。
-  { tag: tags.url, color: 'var(--text-link)' },
-  { tag: tags.monospace, color: 'var(--code-inline-text)', fontFamily: 'var(--font-mono)' },
+  // GFM 会把 work@10.32.140.59 识别成 email 链接、http://… 识别成 URL。
+  // 一律用正文色 + 下划线区分，不再染成链接蓝。
+  { tag: tags.link, color: 'var(--text-body)', textDecoration: 'underline' },
+  { tag: tags.url, color: 'var(--text-body)' },
+  { tag: tags.monospace, color: 'var(--text-body)', fontFamily: 'var(--font-mono)' },
   { tag: tags.quote, color: 'var(--text-muted)', fontStyle: 'italic' },
-  { tag: tags.list, color: 'var(--accent)' },
-  { tag: tags.processingInstruction, color: 'var(--accent)' },
+  // 列表项正文跟随正文字色（以前整行都是浅灰，浅色主题下显得发飘）；
+  // 只有列表圆点 / 标题 # / 引用 > 这些标记符号用浅灰
+  { tag: tags.list, color: 'var(--text-body)' },
+  { tag: tags.processingInstruction, color: 'var(--text-muted)' },
   { tag: tags.contentSeparator, color: 'var(--border-strong)' },
   { tag: tags.comment, color: 'var(--text-faint)' },
 ]);
@@ -99,7 +102,7 @@ function extensionsFor(onChange, onPasteImage) {
     indentOnInput(),
     EditorView.lineWrapping,
     markdown({ base: markdownLanguage }),
-    syntaxHighlighting(warmHighlight),
+    syntaxHighlighting(plainHighlight),
     codeDecorations,
     placeholder('写点什么吧，喵～'),
     keymap.of([
