@@ -30,7 +30,7 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 
 # 16 给标签页、32 给书签/工具栏、48 给 Windows、64/128/256 给高分屏与固定到开始菜单
-sizes=(16 32 48 64 128 256)
+sizes=(16 32 48)
 frames=()
 for s in "${sizes[@]}"; do
   sips -z "$s" "$s" "$SRC" --out "$tmp/icon-$s.png" >/dev/null
