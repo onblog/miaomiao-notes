@@ -99,6 +99,8 @@ export function renderMarkdown(source, baseDir) {
 import { t } from './i18n.js';
 
 let mermaidPromise = null;
+/** 每次重绘递增；旧一轮渲染发现令牌变了就放弃写 DOM，避免覆盖新一轮。 */
+let mermaidRunToken = 0;
 
 function loadMermaid() {
   if (!mermaidPromise) mermaidPromise = import('mermaid');
@@ -156,12 +158,14 @@ export async function renderMermaid(root, themeName = 'cream') {
   const key = `${themeName}::${blocks.map((b) => b.textContent).join('\n\u0000\n')}`;
   if (root.dataset.mermaidKey === key) return;
 
+  const token = ++mermaidRunToken;
   let mermaid;
   try {
     mermaid = (await loadMermaid()).default;
   } catch {
     return; // 加载失败就当普通代码块显示，不阻塞预览
   }
+  if (token !== mermaidRunToken) return; // 期间又重绘过了，本轮作废
 
   mermaid.initialize({
     startOnLoad: false,
@@ -175,6 +179,7 @@ export async function renderMermaid(root, themeName = 'cream') {
   });
 
   for (const code of blocks) {
+    if (token !== mermaidRunToken) return;
     const source = code.textContent || '';
     const host = code.closest('pre');
     if (!host || host.dataset.mermaidDone === '1') continue;
@@ -201,5 +206,6 @@ export async function renderMermaid(root, themeName = 'cream') {
     host.dataset.mermaidDone = '1';
   }
 
-  root.dataset.mermaidKey = key;
+  // 只有仍是最新一轮时才记录指纹，否则会挡住后面那一轮的真实渲染
+  if (token === mermaidRunToken) root.dataset.mermaidKey = key;
 }

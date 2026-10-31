@@ -410,6 +410,8 @@ function noteBaseDir() {
 function paintPreview() {
   if (state.viewMode === 'edit') return;
   el.previewHost.innerHTML = renderMarkdown(editor.getValue(), noteBaseDir());
+  // 内容已整体替换，旧指纹必须作废，否则并发重绘时会误以为「渲染过了」
+  delete el.previewHost.dataset.mermaidKey;
   void renderMermaid(el.previewHost, state.settings?.theme === 'dark' ? 'dark' : 'cream');
 }
 
