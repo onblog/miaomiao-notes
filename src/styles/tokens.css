@@ -12,11 +12,16 @@
   --radius-lg: 16px;
   --radius-pill: 999px;
 
-  /* 排版 */
-  --font-ui: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB',
-    'Microsoft YaHei', sans-serif;
+  /* 排版
+     注意：这里故意不再写 BlinkMacSystemFont。它在 Blink 里会先认领
+     U+26A0(⚠) U+2708(✈) U+2764(❤) U+2600(☀) 这类「默认文本表现」的字符，
+     导致带 VS16(FE0F) 的 ⚠️ ✈️ ❤️ ☀️ 被画成单色文字字形，看起来像「不支持 emoji」。
+     去掉它，并在末尾显式补上彩色 emoji 字体，这些字符才会走 Apple Color Emoji。 */
+  --font-ui: -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
-  --font-reading: -apple-system, 'PingFang SC', 'Songti SC', serif;
+  --font-reading: -apple-system, 'PingFang SC', 'Songti SC', 'Apple Color Emoji',
+    'Noto Color Emoji', serif;
   --editor-font-size: 15px;
 
   /* 滚动条：视觉 2px，颜色跟着主题强调色走（明暗主题自动适配）。
