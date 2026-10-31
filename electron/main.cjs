@@ -104,14 +104,15 @@ const GENERATED_SITE = (() => {
   }
 })();
 
-/** 开发模式便利：允许直接在本仓库根目录的 .env 里写 SITE_URL（该文件不入库）。 */
-function readSiteUrlFromDotEnv() {
+/** 开发模式便利：允许直接在本仓库根目录的 .env 里写 KEY=value（该文件不入库）。 */
+function readFromDotEnv(key) {
   try {
     const file = path.join(__dirname, '..', '.env');
+    const pattern = new RegExp(`^\\s*${key}\\s*=`);
     const line = fs
       .readFileSync(file, 'utf8')
       .split('\n')
-      .find((l) => /^\s*SITE_URL\s*=/.test(l));
+      .find((l) => pattern.test(l));
     if (!line) return '';
     return line.split('=').slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
   } catch {
@@ -119,11 +120,14 @@ function readSiteUrlFromDotEnv() {
   }
 }
 
-const SITE_URL = String(process.env.SITE_URL || GENERATED_SITE.siteUrl || readSiteUrlFromDotEnv() || '')
-  .replace(/\/+$/, '');
+const SITE_URL = String(
+  process.env.SITE_URL || GENERATED_SITE.siteUrl || readFromDotEnv('SITE_URL') || ''
+).replace(/\/+$/, '');
 // 联系方式同样是部署配置：打包时由 CONTACT_EMAIL 写进 site.generated.json（仓库里不出现真实邮箱）。
-// 没有配置时留空，渲染层据此隐藏邮箱入口。
-const CONTACT_EMAIL = String(process.env.CONTACT_EMAIL || GENERATED_SITE.contactEmail || '').trim();
+// 开发态（npm run dev）没有那份文件，退回读本机 .env，保证界面与发布包一致。
+const CONTACT_EMAIL = String(
+  process.env.CONTACT_EMAIL || GENERATED_SITE.contactEmail || readFromDotEnv('CONTACT_EMAIL') || ''
+).trim();
 const STATS_URL = `${SITE_URL}/api/ping`;
 const STATS_DELAY_MS = 5000;
 
