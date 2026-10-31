@@ -1,7 +1,7 @@
 {
   "name": "miaomiao-notes",
   "productName": "喵喵笔记",
-  "version": "1.7.6",
+  "version": "1.7.8",
   "description": "A cute, local-first Markdown notes app for macOS, synced through iCloud Drive. 一只喵喵的本地 Markdown 笔记应用，通过 iCloud Drive 同步。",
   "main": "electron/main.cjs",
   "author": "Martin",
