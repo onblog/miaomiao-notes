@@ -1,67 +1,76 @@
-<!-- 喵喵笔记应用图标 · 原创矢量（暗底 + 动漫杏眼 + 竖瞳）
-     画布 1024，圆角半径 229（约 22.4%，对齐 macOS 图标网格）；
-     由 scripts/build-icon.sh 用 Chrome headless 渲染，保持透明背景。 -->
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 100 824 824" width="1024" height="1024">
   <defs>
-    <linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="120" y1="20" x2="900" y2="1000">
-      <stop offset="0" stop-color="#20283A"/><stop offset="0.5" stop-color="#121824"/><stop offset="1" stop-color="#080A10"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFB98F" />
+      <stop offset="52%" stop-color="#F59162" />
+      <stop offset="100%" stop-color="#E86A45" />
     </linearGradient>
-    <radialGradient id="iris" cx="0.42" cy="0.34" r="0.72">
-      <stop offset="0" stop-color="#FFF3D2"/><stop offset="0.28" stop-color="#FFD493"/>
-      <stop offset="0.62" stop-color="#E8892F"/><stop offset="0.88" stop-color="#B34E12"/><stop offset="1" stop-color="#6E2A08"/>
-    </radialGradient>
-    <radialGradient id="limbal" cx="0.5" cy="0.5" r="0.5">
-      <stop offset="0.72" stop-color="#000000" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity="0.55"/>
-    </radialGradient>
-    <linearGradient id="fur" gradientUnits="userSpaceOnUse" x1="120" y1="180" x2="900" y2="880">
-      <stop offset="0" stop-color="#39445A"/><stop offset="0.5" stop-color="#232B3B"/><stop offset="1" stop-color="#12161F"/>
+    <linearGradient id="face" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#FFF6EE" />
     </linearGradient>
-    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="26"/></filter>
-    <filter id="grain">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="3"/>
-      <feColorMatrix type="saturate" values="0"/>
-      <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#A5462A" flood-opacity="0.22" />
     </filter>
-    <clipPath id="sq"><rect width="1024" height="1024" rx="229"/></clipPath>
-    <clipPath id="eyelid"><path d="M168 604C168 420 320 296 512 296s344 124 344 308c0 168-150 296-344 296S168 772 168 604Z"/></clipPath>
+    <filter id="inner-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="10" flood-color="#C25433" flood-opacity="0.18" />
+    </filter>
   </defs>
 
-  <g clip-path="url(#sq)">
-    <rect width="1024" height="1024" fill="url(#bg)"/>
-    <!-- 眼部底光 -->
-    <ellipse cx="512" cy="600" rx="420" ry="360" fill="#E07C3C" opacity="0.10" filter="url(#blur)"/>
+  <!-- macOS 圆角底板：满幅铺满 1024 画布（viewBox 裁到 100,100,824,824，图形坐标不变） -->
+  <rect x="100" y="100" width="824" height="824" rx="184" fill="url(#bg)" />
+  <!-- 顶部高光 -->
+  <path
+    d="M100 284C100 182 182 100 284 100h456c102 0 184 82 184 184v52c-118-46-268-72-412-72S218 290 100 336Z"
+    fill="#FFFFFF"
+    opacity="0.13"
+  />
 
-    <!-- 眼裂（猫眼的上扬眼角） -->
-    <path d="M150 596C176 396 336 268 512 268s336 128 362 328c-70-96-206-150-362-150s-292 54-362 150Z" fill="url(#fur)"/>
-    <g clip-path="url(#eyelid)">
-      <!-- 眼球底：极暗的巩膜，猫眼几乎贴满虹膜 -->
-      <path d="M168 604C168 420 320 296 512 296s344 124 344 308c0 168-150 296-344 296S168 772 168 604Z" fill="#0B0E14"/>
-      <!-- 虹膜 -->
-      <circle cx="512" cy="600" r="266" fill="url(#iris)"/>
-      <circle cx="512" cy="600" r="220" fill="none" stroke="#8A3A0E" stroke-width="26" opacity="0.16"/>
-      <circle cx="512" cy="600" r="266" fill="url(#limbal)"/>
-      <circle cx="512" cy="600" r="266" fill="none" stroke="#2A1105" stroke-width="10" opacity="0.8"/>
-      <!-- 竖瞳 -->
-      <ellipse cx="512" cy="600" rx="52" ry="198" fill="#120A05"/>
-      <ellipse cx="512" cy="600" rx="52" ry="198" fill="none" stroke="#3A1C0C" stroke-width="4" opacity="0.6"/>
-      <ellipse cx="494" cy="542" rx="15" ry="64" fill="#FFFFFF" opacity="0.10"/>
-      <!-- 双高光：一大一小，动漫标配 -->
-      <ellipse cx="396" cy="440" rx="58" ry="42" fill="#FFFFFF" opacity="0.94" transform="rotate(-22 396 440)"/>
-      <circle cx="624" cy="752" r="22" fill="#FFFFFF" opacity="0.55"/>
-      <circle cx="654" cy="470" r="9" fill="#FFFFFF" opacity="0.35"/>
-      <!-- 眼睑投影：眼球上缘压暗 -->
-      <path d="M168 604C168 420 320 296 512 296s344 124 344 308c-52-150-186-232-344-232S220 454 168 604Z" fill="#000000" opacity="0.34"/>
-      <!-- 虹膜底部反光弧（动漫眼常见的一层回暖） -->
-      <path d="M512 800c-134 0-244-88-244-200 30 108 128 170 244 170s214-62 244-170c0 112-110 200-244 200Z" fill="#FFC48A" opacity="0.18"/>
-      <!-- 眼白内侧的暖反光 -->
-      <path d="M512 764c-92 0-174-44-216-108 34 96 118 160 216 160s182-64 216-160c-42 64-124 108-216 108Z" fill="#FFB27A" opacity="0.16"/>
-    </g>
+  <g filter="url(#inner-glow)">
+    <!-- 猫耳 -->
+    <path d="M318 452 296 268c-3-22 20-36 38-24l136 92Z" fill="url(#face)" />
+    <path d="M706 452 728 268c3-22-20-36-38-24l-136 92Z" fill="url(#face)" />
+    <!-- 耳内粉色 -->
+    <path d="M340 424 328 314c-1-9 9-14 16-9l74 50Z" fill="#F7B79B" />
+    <path d="M684 424 696 314c1-9-9-14-16-9l-74 50Z" fill="#F7B79B" />
 
-    <!-- 上眼睑：一道压重的睫毛线 -->
-    <path d="M-60 660C-30 400 320 236 512 236s542 164 572 424" fill="none" stroke="#05070B" stroke-width="30" stroke-linecap="round"/>
-    <path d="M186 596C214 424 352 310 512 310s298 114 326 286" fill="none" stroke="#8FA6C4" stroke-width="5" opacity="0.22" stroke-linecap="round"/>
+    <!-- 猫头 -->
+    <path
+      d="M512 398c142 0 246 100 246 226S654 848 512 848 266 748 266 624s104-226 246-226Z"
+      fill="url(#face)"
+      filter="url(#soft-shadow)"
+    />
 
+    <!-- 腮红 -->
+    <ellipse cx="392" cy="654" rx="42" ry="27" fill="#FB9E7C" opacity="0.5" />
+    <ellipse cx="632" cy="654" rx="42" ry="27" fill="#FB9E7C" opacity="0.5" />
 
-    <rect width="1024" height="1024" filter="url(#grain)" opacity="0.045"/>
+    <!-- 眼睛 -->
+    <ellipse cx="428" cy="596" rx="27" ry="34" fill="#3B3530" />
+    <ellipse cx="596" cy="596" rx="27" ry="34" fill="#3B3530" />
+    <circle cx="437" cy="584" r="9" fill="#FFFFFF" />
+    <circle cx="605" cy="584" r="9" fill="#FFFFFF" />
+
+    <!-- 鼻子 -->
+    <path d="M512 646c11 0 20 8 20 17 0 12-20 24-20 24s-20-12-20-24c0-9 9-17 20-17Z" fill="#E86A45" />
+
+    <!-- 嘴 -->
+    <path
+      d="M512 690v14c0 14-16 24-32 24s-30-8-34-22M512 704c0 14 16 24 32 24s30-8 34-22"
+      fill="none"
+      stroke="#3B3530"
+      stroke-width="13"
+      stroke-linecap="round"
+    />
+
+    <!-- 胡须 -->
+    <path
+      d="M330 620 246 596M330 664 240 664M698 620 782 596M698 664 788 664"
+      fill="none"
+      stroke="#3B3530"
+      stroke-width="12"
+      stroke-linecap="round"
+      opacity="0.55"
+    />
   </g>
 </svg>
