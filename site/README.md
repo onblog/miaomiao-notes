@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="public/assets/icon.svg" width="88" alt="Miaomiao Notes" />
+<img src="public/assets/icon.png" width="88" alt="Miaomiao Notes" />
 
 # miaomiao-site
 

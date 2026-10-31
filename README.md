@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="site/public/assets/icon.svg" width="112" alt="Miaomiao Notes" />
+<img src="site/public/assets/icon.png" width="112" alt="Miaomiao Notes" />
 
 <h1>喵喵笔记 · Miaomiao Notes</h1>
 
@@ -102,7 +102,7 @@ before syncing, iCloud creates a copy like `笔记 2.md`. Miaomiao Notes:
 electron/       Main process: window, vault paths, file IO, native menu, IPC
 src/            Renderer: three-column UI, CodeMirror editor, Markdown preview
 src/styles/     Design tokens and theme (a new theme is one [data-theme] block)
-build/          App icon sources (SVG + generated icns)
+build/          App icon sources (PNG + generated icns)
 site/           Official site: Cloudflare Worker plus static assets
 ```
 

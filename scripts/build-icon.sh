@@ -1,43 +1,36 @@
 #!/usr/bin/env bash
-# Regenerate the macOS app icon from build/icon.svg.
+# Regenerate the macOS app icon from build/icon.png.
 #
-# Why a script: the SVG canvas is full-bleed, so the rendered PNG must keep a
-# TRANSPARENT background. Flattening it onto opaque white (what happened before)
-# bakes a 100px white frame around the artwork, which shows up as an outer white
-# ring in Finder / Dock / Launchpad.
+# The master artwork is a 1024x1024 PNG with a rounded plate baked in
+# (corner radius 229px = macOS icon grid). It must keep a TRANSPARENT
+# background outside that plate: flattening it onto opaque white shows up as an
+# outer white frame in Finder / Dock / Launchpad.
 #
-# Rendering uses headless Chrome so the SVG filters (feDropShadow) match the
-# original design. Requires: Google Chrome, sips, iconutil.
+# History: this used to render build/icon.svg with headless Chrome. The artwork
+# is now an illustration rather than a vector, so the PNG is the source of truth
+# and the script only needs sips + iconutil plus ImageMagick for the alpha guard.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-SVG="build/icon.svg"
-MASTER="build/icon.svg.png"
+MASTER="build/icon.png"
 ICONSET="build/icon.iconset"
 ICNS="build/icon.icns"
-CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 SIZE=1024
 
-if [[ ! -x "$CHROME" ]]; then
-  echo "error: Google Chrome not found at $CHROME" >&2
-  echo "       install it, or render $SVG with any engine that keeps alpha" >&2
+if [[ ! -f "$MASTER" ]]; then
+  echo "error: $MASTER not found — the master artwork is a committed PNG" >&2
   exit 1
 fi
 
-echo "==> rendering $SVG -> $MASTER (${SIZE}x${SIZE}, transparent)"
-"$CHROME" \
-  --headless=new \
-  --disable-gpu \
-  --hide-scrollbars \
-  --force-device-scale-factor=1 \
-  --default-background-color=00000000 \
-  --window-size="${SIZE},${SIZE}" \
-  --screenshot="$MASTER" \
-  "file://$PWD/$SVG" >/dev/null 2>&1
+read -r width height < <(sips -g pixelWidth -g pixelHeight "$MASTER" | awk '/pixel/ {print $2}' | paste -sd' ' -)
+if [[ "$width" != "$SIZE" || "$height" != "$SIZE" ]]; then
+  echo "error: $MASTER must be ${SIZE}x${SIZE} (got ${width}x${height})" >&2
+  exit 1
+fi
 
-# Guard against a regression to a opaque-white background, which is invisible
-# inside the SVG but shows up as a white ring once the icon is installed.
+# Guard against a regression to an opaque background: it is invisible in the
+# master PNG preview but shows up as a white ring once the icon is installed.
 if command -v magick >/dev/null 2>&1; then
   corner=$(magick "$MASTER" -format "%[pixel:p{0,0}]" info:)
   if [[ "$corner" != *",0)"* ]]; then
