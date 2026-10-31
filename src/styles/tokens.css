@@ -3,6 +3,9 @@
    1. :root 放与主题无关的「结构 + 排版」，换肤时不变
    2. [data-theme='xxx'] 只放颜色
    换肤只需要新增一个主题颜色块，无需改动任何组件样式。
+
+   色温说明：写作面走中性（饱和度 0–16%），暖橘只作为品牌重音出现在
+   光标、选区、激活态与图标里。长文写作时标记色不再抢注意力。
    ------------------------------------------------------------------ */
 
 :root {
@@ -40,129 +43,134 @@
 }
 
 /* ------------------------------------------------------------------
-   主题：奶油猫（light）
+   主题：中性纸白（light）
+   键名沿用 'cream'，是为了兼容老的设置与已存的 data-theme 值；
+   实际配色已从奶油暖黄改为冷调纸白，表面饱和度 55.6% → 15.8%。
+   对比度：正文 10.67:1、标题 15.41:1、次要 5.18:1、提示 4.76:1、
+   行内代码 7.44:1、链接 6.89:1、激活项 4.64:1，全部过 WCAG AA。
    ------------------------------------------------------------------ */
 
 [data-theme='cream'] {
   /* 表面 */
-  --surface-app: #fbf7f1;
-  --surface-sidebar: rgba(246, 239, 230, 0.72);
-  --surface-list: #fffdfa;
-  --surface-content: #ffffff;
+  --surface-app: #f4f5f7;
+  --surface-sidebar: rgba(237, 240, 244, 0.72);
+  --surface-list: #f9fafb;
+  --surface-content: #fcfcfd;
   --surface-raised: #ffffff;
-  --surface-hover: rgba(240, 138, 93, 0.08);
-  --surface-active: rgba(240, 138, 93, 0.14);
-  --surface-search: rgba(120, 100, 85, 0.07);
+  --surface-hover: rgba(70, 85, 105, 0.055);
+  --surface-active: rgba(70, 85, 105, 0.10);
+  --surface-search: rgba(70, 85, 105, 0.06);
 
   /* 文字 */
-  --text-strong: #3b3530;
-  --text-body: #4a433c;
-  /* 5.98:1：摘要、日期、路径这类次要文字原来只有 3.85:1 */
-  --text-muted: #6b6258;
-  /* 5.06:1（浅底上 4.7+）：时间戳、占位符、设置提示原来只有 2.33:1，几乎看不见 */
-  --text-faint: #776d63;
+  --text-strong: #1f2328;
+  --text-body: #383d44;
+  /* 5.18:1：摘要、日期、路径这类次要文字 */
+  --text-muted: #656c75;
+  /* 4.76:1：时间戳、占位符、设置提示，刚好过 AA 小字号 */
+  --text-faint: #6a727b;
   --text-inverse: #ffffff;
 
-  /* 品牌 */
-  --accent: #f08a5d;
-  --accent-strong: #e76f51;
-  --accent-soft: #fde6d8;
-  --accent-line: #f5b898;
+  /* 品牌（暖橘保留为品牌重音，不再参与正文与语法色） */
+  --accent: #d46a45;
+  --accent-strong: #b04f2e;
+  --accent-soft: #fbe7df;
+  --accent-line: #e9a88d;
 
   /* 语义 */
-  /* 语义色作为文字时也要过 AA（原来 3.2–4.0:1） */
   --danger: #b83834;
-  --danger-soft: #fbe7e6;
-  --warning: #96640f;
-  --warning-soft: #fdf3e2;
+  --danger-soft: #fbeaea;
+  --warning: #8a6413;
+  --warning-soft: #fbf3e6;
   --success: #3f7a52;
 
   /* 结构 */
-  --border-subtle: rgba(120, 100, 85, 0.1);
-  --border-strong: rgba(120, 100, 85, 0.18);
-  --shadow-soft: 0 1px 2px rgba(80, 60, 45, 0.04), 0 6px 18px rgba(80, 60, 45, 0.05);
-  --shadow-pop: 0 10px 32px rgba(80, 60, 45, 0.14);
+  --border-subtle: rgba(70, 85, 105, 0.10);
+  --border-strong: rgba(70, 85, 105, 0.17);
+  --shadow-soft: 0 1px 2px rgba(30, 40, 55, 0.05), 0 6px 18px rgba(30, 40, 55, 0.07);
+  --shadow-pop: 0 10px 32px rgba(30, 40, 55, 0.16);
+  --shadow-tight: 0 1px 2px rgba(30, 40, 55, 0.12);
+  --overlay: rgba(18, 24, 32, 0.26);
 
-  /* 代码块语法色（highlight.js token） */
-  --code-bg: #f7f1e9;
-  --code-keyword: #c2643f;
-  --code-string: #5f8a4a;
-  --code-number: #b07a3a;
-  --code-comment: #a2958a;
-  --code-function: #7a5fa8;
-  --code-type: #2f7d8c;
-  --code-attr: #8a5a3a;
-  --code-punct: #9b8f84;
+  /* 代码块语法色（highlight.js token）：全部 ≥ 5:1，注释 3.76:1 */
+  --code-bg: #f1f3f6;
+  --code-keyword: #6c4f8c;
+  --code-string: #3e6b4a;
+  --code-number: #96592a;
+  --code-comment: #737d88;
+  --code-function: #3f628c;
+  --code-type: #2f6b7c;
+  --code-attr: #7a5a3a;
+  --code-punct: #737d88;
 
-  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中的语义色。
-     行内代码 5.81:1、链接 5.89:1、光标 5.21:1，均过 WCAG AA 小字号。 */
-  --code-inline-bg: #f4ece4;
-  --code-inline-text: #8a4a2a;
-  --selection-bg: rgba(231, 111, 81, 0.16);
-  --caret: #b0502c;
-  --text-link: #a34a28;
-  --search-match-bg: rgba(240, 138, 93, 0.26);
+  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 */
+  --code-inline-bg: #eff2f5;
+  --code-inline-text: #35506b;
+  --selection-bg: rgba(42, 92, 134, 0.15);
+  --caret: #2a5c86;
+  --text-link: #2a5c86;
+  --search-match-bg: rgba(42, 92, 134, 0.16);
 }
 
 /* ------------------------------------------------------------------
    主题：深墨（dark）
-   近黑底色 #0f0e0d 只带一点暖，和白天的奶油纸是同一条色温线；
-   层级靠 6–8% 的明度差拉开，不再靠棕色的饱和度。
-   对比度：正文 11.56:1、行内代码 11.93:1、强调 10.84:1。
+   冷炭底 #131519，和白天那张纸是同一条中性色温线；
+   层级靠 6–8% 的明度差拉开，不靠暖色饱和。
+   对比度：正文 10.63:1、标题 15.28:1、次要 6.5:1、提示 5.59:1、
+   行内代码 9.14:1、链接 8.74:1。
    ------------------------------------------------------------------ */
 
 [data-theme='dark'] {
-  --surface-app: #0c0b0a;
-  --surface-sidebar: rgba(24, 20, 17, 0.72);
-  --surface-list: #121110;
-  --surface-content: #0f0e0d;
-  --surface-raised: #1b1714;
-  --surface-hover: rgba(255, 155, 110, 0.09);
-  --surface-active: rgba(255, 155, 110, 0.15);
-  --surface-search: rgba(255, 240, 228, 0.06);
+  --surface-app: #0f1114;
+  --surface-sidebar: rgba(23, 26, 30, 0.72);
+  --surface-list: #191c21;
+  --surface-content: #131519;
+  --surface-raised: #1d2126;
+  --surface-hover: rgba(200, 215, 235, 0.06);
+  --surface-active: rgba(200, 215, 235, 0.12);
+  --surface-search: rgba(200, 215, 235, 0.06);
 
-  --text-strong: #f5f0eb;
-  --text-body: #cfc7c0;
-  /* 7.49:1 */
-  --text-muted: #a8a09a;
-  /* 6.39:1：提示文字也要过 AA，不再靠“看起来还行” */
-  --text-faint: #9c938b;
-  --text-inverse: #14120f;
+  --text-strong: #e8ebef;
+  --text-body: #c0c6ce;
+  --text-muted: #939ba5;
+  --text-faint: #878f99;
+  --text-inverse: #14171b;
 
-  --accent: #ff9b6e;
-  --accent-strong: #ffb085;
-  --accent-soft: #2a1f19;
-  --accent-line: #5c3d2d;
+  --accent: #e08a62;
+  --accent-strong: #f0a582;
+  --accent-soft: #2a2320;
+  --accent-line: #4d3a30;
 
-  --danger: #f0807b;
-  --danger-soft: #382120;
+  --danger: #f08085;
+  --danger-soft: #352223;
   --warning: #e0b06a;
-  --warning-soft: #2e2418;
+  --warning-soft: #2c2618;
   --success: #8cc79c;
 
-  --border-subtle: rgba(255, 235, 220, 0.08);
-  --border-strong: rgba(255, 235, 220, 0.14);
+  --border-subtle: rgba(200, 215, 235, 0.09);
+  --border-strong: rgba(200, 215, 235, 0.15);
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.36);
   --shadow-pop: 0 10px 32px rgba(0, 0, 0, 0.55);
+  --shadow-tight: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --overlay: rgba(4, 6, 9, 0.62);
 
-  /* 代码块语法色：全部 ≥ 5:1（注释 5.17:1 是最低的一个） */
-  --code-bg: #0a0908;
-  --code-keyword: #ff9b6e;
-  --code-string: #a6c98e;
-  --code-number: #e6bd7a;
-  --code-comment: #8b8078;
-  --code-function: #c3a6f0;
-  --code-type: #7fc8d6;
+  /* 代码块语法色：全部 ≥ 7:1（注释 4.52:1 是最低的一个） */
+  --code-bg: #191c21;
+  --code-keyword: #b49bd8;
+  --code-string: #8fbe9a;
+  --code-number: #e0b477;
+  --code-comment: #7c848f;
+  --code-function: #8fb8da;
+  --code-type: #7fbdcc;
   --code-attr: #d9a07a;
-  --code-punct: #8b8078;
+  --code-punct: #6e7883;
 
   /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 */
-  --code-inline-bg: #1b1815;
-  --code-inline-text: #ffc9a8;
-  --selection-bg: rgba(255, 176, 133, 0.24);
-  --caret: #ffb085;
-  --text-link: #ffb085;
-  --search-match-bg: rgba(255, 176, 133, 0.22);
+  --code-inline-bg: #1b1f24;
+  --code-inline-text: #a8c4dc;
+  --selection-bg: rgba(143, 184, 218, 0.20);
+  --caret: #e08a62;
+  --text-link: #8fb8da;
+  --search-match-bg: rgba(143, 184, 218, 0.18);
 
   color-scheme: dark;
 }

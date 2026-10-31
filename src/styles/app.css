@@ -176,8 +176,9 @@ svg {
 
 .folder-item.is-active {
   background: var(--surface-active);
-  /* 选中文件夹是常驻文字，3.09:1 的强调橙太浅，改用链接色（浅色 5.89:1） */
-  color: var(--text-link);
+  /* 选中文件夹是常驻文字：中性纸白主题下 accent-strong 在侧栏上 4.64:1，
+     直接用品牌橙，比借链接色更符合「选中」的语义。 */
+  color: var(--accent-strong);
   font-weight: 550;
 }
 
@@ -673,7 +674,7 @@ body.is-resizing {
 }
 
 .cat-shadow {
-  fill: rgba(120, 100, 85, 0.1);
+  fill: rgba(70, 85, 105, 0.10);
 }
 .cat-body {
   fill: #f6c9a8;
@@ -733,13 +734,13 @@ body.is-resizing {
   color: var(--text-inverse);
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 6px 16px rgba(240, 138, 93, 0.32);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 30%, transparent);
   transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
 
 .primary-button:hover {
   transform: translateY(-1px);
-  box-shadow: 0 9px 22px rgba(240, 138, 93, 0.38);
+  box-shadow: 0 9px 22px color-mix(in srgb, var(--accent) 38%, transparent);
 }
 
 .primary-button:active {
@@ -879,7 +880,7 @@ body.is-resizing {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(60, 45, 35, 0.26);
+  background: var(--overlay);
   backdrop-filter: blur(3px);
   z-index: 50;
 }
@@ -1057,7 +1058,7 @@ body.is-resizing {
   background: var(--surface-raised);
   color: var(--text-strong);
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(80, 60, 45, 0.12);
+  box-shadow: var(--shadow-tight);
 }
 
 /* 开关 */
