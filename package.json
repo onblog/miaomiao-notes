@@ -16,10 +16,10 @@
     "build": "vite build",
     "icon": "bash scripts/build-icon.sh",
     "start": "npm run build && electron .",
-    "dist": "npm run dist:arm64 && npm run dist:x64 && npm run clean",
+    "dist": "node scripts/write-site-config.cjs --require && npm run dist:arm64 && npm run dist:x64 && npm run clean",
     "dist:arm64": "electron-builder --mac --arm64",
     "dist:x64": "electron-builder --mac --x64",
-    "dist:ulmo": "npm run dist:arm64 && node scripts/compress-dmg.cjs arm64 && npm run dist:x64 && node scripts/compress-dmg.cjs x64 && npm run clean",
+    "dist:ulmo": "node scripts/write-site-config.cjs --require && npm run dist:arm64 && node scripts/compress-dmg.cjs arm64 && npm run dist:x64 && node scripts/compress-dmg.cjs x64 && npm run clean",
     "clean": "node scripts/clean-release.cjs"
   },
   "dependencies": {

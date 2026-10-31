@@ -71,6 +71,17 @@ npm run dist     # package macOS dmg for arm64 and x64 (prunes stale artifacts)
 npm run clean    # keep only the current version in release/
 ```
 
+Add a `.env` at the repo root before packaging so the in-app **Check for updates**
+and the anonymous launch ping know where the site lives (the file is git-ignored,
+so the production domain never enters the repo):
+
+```bash
+SITE_URL=https://your-site.example
+```
+
+`npm run dist` refuses to build without it, so a release can never ship a dead
+update checker.
+
 ## Where notes live
 
 ```

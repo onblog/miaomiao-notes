@@ -12,3 +12,6 @@ site/latest.json
 
 # Local environment (never commit the production domain)
 .env
+
+# 打包时写入的官网地址（来自 SITE_URL，绝不入库）
+electron/site.generated.json

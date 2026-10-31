@@ -70,6 +70,15 @@ npm run dist     # 打包 macOS dmg（arm64 + x64），结束后自动清理旧�
 npm run clean    # 手动清理 release/，只保留当前版本
 ```
 
+打包前请在仓库根目录建一个 `.env`，告诉应用「官网在哪」——「检查更新」与匿名启动
+统计都依赖它（该文件已在 `.gitignore` 里，线上域名不会进入仓库）：
+
+```bash
+SITE_URL=https://your-site.example
+```
+
+`npm run dist` 缺少这个变量会直接拒绝打包，避免发出「检查更新永远失败」的版本。
+
 ## 笔记存在哪
 
 ```

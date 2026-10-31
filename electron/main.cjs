@@ -93,8 +93,34 @@ function trackWindowGeometry() {
  * rather than the person: no hardware, no account, no IP. Users can turn this
  * off in Settings, in which case nothing is ever sent.
  */
-// 官网地址由打包环境注入（SITE_URL），仓库里不写死线上域名。
-const SITE_URL = process.env.SITE_URL ?? '';
+// 官网地址：优先运行时环境变量，其次打包时由 scripts/write-site-config.cjs
+// 写进 bundle 的 electron/site.generated.json（仓库里不出现线上域名）。
+// 以前只读 process.env.SITE_URL，双击启动时它是空的，导致「检查更新」永远失败。
+const GENERATED_SITE = (() => {
+  try {
+    return require('./site.generated.json');
+  } catch {
+    return {};
+  }
+})();
+
+/** 开发模式便利：允许直接在本仓库根目录的 .env 里写 SITE_URL（该文件不入库）。 */
+function readSiteUrlFromDotEnv() {
+  try {
+    const file = path.join(__dirname, '..', '.env');
+    const line = fs
+      .readFileSync(file, 'utf8')
+      .split('\n')
+      .find((l) => /^\s*SITE_URL\s*=/.test(l));
+    if (!line) return '';
+    return line.split('=').slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+  } catch {
+    return '';
+  }
+}
+
+const SITE_URL = String(process.env.SITE_URL || GENERATED_SITE.siteUrl || readSiteUrlFromDotEnv() || '')
+  .replace(/\/+$/, '');
 const STATS_URL = `${SITE_URL}/api/ping`;
 const STATS_DELAY_MS = 5000;
 
