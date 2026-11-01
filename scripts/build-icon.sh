@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
 # Regenerate the macOS app icon from build/icon.png.
 #
-# The master artwork is a 1024x1024 PNG with a rounded plate baked in
-# (corner radius 229px = macOS icon grid). It must keep a TRANSPARENT
-# background outside that plate: flattening it onto opaque white shows up as an
-# outer white frame in Finder / Dock / Launchpad.
+# The master artwork is a full-bleed 1024x1024 illustration with the macOS
+# squircle baked in (corner radius 229px = macOS icon grid, alpha 0 outside the
+# plate). It must keep a TRANSPARENT background outside that plate: flattening it
+# onto opaque white shows up as an outer white frame in Finder / Dock / Launchpad.
 #
-# Density rule: the cat fills ~93% of the canvas (>=3% clear of the plate edge
-# on every side) so the icon does not read as a white square with a small cat in
-# the middle. Keep that ratio when swapping the artwork; the plate is pure white
-# and every pixel with alpha < 250 must carry white RGB, otherwise the leftover
-# dark residue shows up once the master is flattened (apple-touch-icon, og).
+# The plate colour comes from the artwork itself (a warm cream), not a flat white
+# fill, so there is no "cat on a white square" density rule any more — the
+# illustration covers the whole plate and reaches its edge. When swapping the
+# source PNG, mask it at radius 229/1024 and keep the outside transparent.
 #
 # History: this used to render build/icon.svg with headless Chrome. The artwork
 # is now an illustration rather than a vector, so the PNG is the source of truth

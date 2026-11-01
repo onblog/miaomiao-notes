@@ -2,7 +2,8 @@
 #
 # 从位图主图重新生成站点图标（favicon.ico 以及可选的 apple-touch-icon 等 PNG）。
 #
-# 主图是 build/icon.png（1024×1024，圆角底板已烘焙进图里，四角透明）。
+# 主图是 build/icon.png（1024×1024，圆角底板已烘焙进图里，四角透明；
+# 底板颜色来自插画自带的奶油底，不是填白）。
 # 依赖：sips（macOS 自带） + ImageMagick 7（brew install imagemagick）
 #
 # 为什么不再从 SVG 渲染：图标美术现在是插画位图，没有对应矢量源；
