@@ -83,6 +83,12 @@ CONTACT_EMAIL=you@example.com   # optional: mail entry in the developer panel, h
 `npm run dist` refuses to build without it, so a release can never ship a dead
 update checker.
 
+The check itself uses a 15s timeout plus one retry and pins the DNS result order to
+`ipv4first`: on slow dual-stack networks an AAAA record is often a blackhole — Chromium falls
+back to IPv4 via Happy Eyeballs while Node's `fetch` waits for the timeout, which reads as
+"the browser opens the site, the app cannot check". A failure now also says why (no site
+configured / network unreachable / server error) instead of one generic sentence.
+
 ## Where notes live
 
 ```

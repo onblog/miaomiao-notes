@@ -158,6 +158,9 @@ const messages = {
     'settings.upToDate': '已是最新版本',
     'settings.updateAvailable': '发现新版本 v{version}',
     'settings.updateFailed': '检查失败，请稍后再试',
+    'settings.updateUnconfigured': '本构建未写入官网地址，无法检查更新',
+    'settings.updateOffline': '连不上官网，请检查网络或代理',
+    'settings.updateServer': '服务器返回异常（HTTP {status}）',
     'settings.download': '去官网下载',
 
     'settings.close': '关闭',
@@ -321,6 +324,9 @@ const messages = {
     'settings.upToDate': "You're up to date",
     'settings.updateAvailable': 'v{version} is available',
     'settings.updateFailed': 'Check failed, try again later',
+    'settings.updateUnconfigured': 'This build has no site address, so updates cannot be checked',
+    'settings.updateOffline': 'Cannot reach the site — check your network or proxy',
+    'settings.updateServer': 'The server answered with an error (HTTP {status})',
     'settings.download': 'Download',
 
     'settings.close': 'Close',

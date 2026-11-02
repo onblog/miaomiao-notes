@@ -13,6 +13,7 @@ const {
 const path = require('node:path');
 const fs = require('node:fs');
 const { randomUUID } = require('node:crypto');
+const { setDefaultResultOrder } = require('node:dns');
 
 const {
   icloudRoot,
@@ -148,25 +149,81 @@ function compareVersions(a, b) {
   return 0;
 }
 
+/**
+ * Own requests are this app's only outbound traffic, and they used to be brittle on slow
+ * dual-stack home networks: no timeout, no retry, and Node's resolver could pick a blackholed
+ * IPv6 address. A browser survives the same network because Chromium does Happy Eyeballs.
+ * So: prefer IPv4 like curl/Chromium, allow real time, and retry once before giving up.
+ */
+const REQUEST_TIMEOUT_MS = 15_000;
+const REQUEST_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 1200;
+try {
+  setDefaultResultOrder('ipv4first');
+} catch {
+  // Older runtimes keep their default order; the longer timeout still covers it.
+}
+
+/** The error code worth showing a human: Node hides it inside `cause`. */
+function networkCode(error) {
+  const cause = error && error.cause;
+  // undici wraps connection failures in an AggregateError, so the code hides one level deeper.
+  const nested = cause && Array.isArray(cause.errors) ? cause.errors[0] : null;
+  return String(
+    (nested && nested.code) ||
+      (cause && cause.code) ||
+      (error && error.code) ||
+      (error && error.name) ||
+      'network',
+  );
+}
+
+/** Failures carry a machine-readable reason so the UI can stop saying just "check failed". */
+function releaseError(message, reason, extra) {
+  const error = new Error(message);
+  const options = extra || {};
+  error.status = options.status || 502;
+  error.reason = reason;
+  if (options.detail) error.detail = options.detail;
+  return error;
+}
+
+async function requestWithRetry(url, init) {
+  let lastError;
+  for (let attempt = 1; attempt <= REQUEST_ATTEMPTS; attempt += 1) {
+    try {
+      return await fetch(url, { ...(init || {}), signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) });
+    } catch (error) {
+      lastError = error;
+      if (attempt < REQUEST_ATTEMPTS) await new Promise((done) => setTimeout(done, RETRY_DELAY_MS));
+    }
+  }
+  throw lastError;
+}
+
 async function checkLatestRelease() {
   const current = app.getVersion();
+  if (!SITE_URL) throw releaseError('no site', 'unconfigured');
+
+  let response;
+  try {
+    response = await requestWithRetry(`${SITE_URL}/api/release`, {
+      headers: { Accept: 'application/json' },
+    });
+  } catch (error) {
+    console.error('[update] request failed:', networkCode(error));
+    throw releaseError('network', 'offline', { detail: networkCode(error) });
+  }
 
   let payload;
   try {
-    const response = await fetch(`${SITE_URL}/api/release`, {
-      headers: { Accept: 'application/json' },
-    });
     payload = await response.json();
   } catch {
-    const error = new Error('network');
-    error.status = 502;
-    throw error;
+    throw releaseError('bad payload', 'server', { status: response.status });
   }
 
-  if (!payload?.ok || !payload.data?.version) {
-    const error = new Error('bad payload');
-    error.status = 502;
-    throw error;
+  if (!response.ok || !payload?.ok || !payload.data?.version) {
+    throw releaseError('bad payload', 'server', { status: response.status });
   }
 
   const latest = String(payload.data.version);
@@ -394,7 +451,13 @@ function handle(channel, fn) {
     } catch (error) {
       const status = error.status || 500;
       if (status >= 500) console.error(`[ipc:${channel}]`, error);
-      return { ok: false, error: error.message || 'unknown error', status };
+      return {
+        ok: false,
+        error: error.message || 'unknown error',
+        status,
+        reason: error.reason || null,
+        detail: error.detail || null,
+      };
     }
   });
 }

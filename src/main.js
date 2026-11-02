@@ -1247,6 +1247,13 @@ function openSettings() {
     close();
   });
 
+/** Failure reasons reported by the main process, each with its own sentence. */
+const UPDATE_FAIL_KEYS = {
+  unconfigured: 'settings.updateUnconfigured',
+  offline: 'settings.updateOffline',
+  server: 'settings.updateServer',
+};
+
   const checkButton = backdrop.querySelector('#js-check-update');
   checkButton?.addEventListener('click', async () => {
     checkButton.disabled = true;
@@ -1257,7 +1264,10 @@ function openSettings() {
     checkButton.textContent = t('settings.checkUpdate');
 
     if (!result.ok) {
-      versionLine.textContent = t('settings.updateFailed');
+      // "Check failed" alone hid a missing site config, a dead network and a server error
+      // behind the same words; the main process now reports which one it was.
+      const key = UPDATE_FAIL_KEYS[result.reason] || 'settings.updateFailed';
+      versionLine.textContent = t(key, { status: result.status ? String(result.status) : '—' });
       return;
     }
 
