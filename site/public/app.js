@@ -47,27 +47,42 @@ async function downloadFile(url, size, onProgress, signal) {
     const end = Math.min(start + chunkSize - 1, size - 1);
     if (start > end) return;
 
+    const expected = end - start + 1;
+
     // 一个分片失败时重试两次，避免整次下载白费
     for (let attempt = 0; attempt < 3; attempt += 1) {
+      const base = loaded; // 重试时把这轮算进进度的字节退回去
       try {
         const response = await fetch(url, {
           headers: { Range: `bytes=${start}-${end}` },
+          // 安装包不许走 HTTP 缓存：缓存里的旧字节拼进来就是坏包
+          cache: 'no-store',
           signal,
         });
         if (response.status !== 206) throw new Error(`unexpected status ${response.status}`);
 
         const reader = response.body.getReader();
         const buffers = [];
+        let received = 0;
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           buffers.push(value);
+          received += value.length;
           loaded += value.length;
           onProgress?.(loaded, size);
         }
+
+        // 连接被中途掐断时 reader 只会「安静地结束」，不会抛错。不比对长度，
+        // 缺了一截的碎片就会被拼进最终文件，用户拿到的 dmg 直接打不开。
+        if (received !== expected) {
+          throw new Error(`short segment ${index}: ${received}/${expected}`);
+        }
+
         parts[index] = new Blob(buffers);
         return;
       } catch (error) {
+        loaded = base;
         if (error.name === 'AbortError') throw error;
         if (attempt === 2) throw error;
         await delay(400 * (attempt + 1));
@@ -268,20 +283,29 @@ function renderRelease() {
   }
 }
 
+async function fetchRelease({ fresh = false } = {}) {
+  const url = fresh ? `/api/release?fresh=1&ts=${Date.now()}` : '/api/release';
+  const response = await fetch(url, {
+    headers: { Accept: 'application/json' },
+    cache: 'no-store',
+  });
+  const payload = await response.json();
+  if (!payload.ok || !payload.data) return null;
+  return payload.data;
+}
+
 async function loadRelease() {
   const line = document.getElementById('version-line');
 
   try {
-    const response = await fetch('/api/release', { headers: { Accept: 'application/json' } });
-    const payload = await response.json();
-
-    if (!payload.ok || !payload.data) {
+    const data = await fetchRelease();
+    if (!data) {
       lastRelease = null;
       renderRelease();
       return;
     }
 
-    lastRelease = payload.data;
+    lastRelease = data;
     renderRelease();
   } catch {
     lastRelease = null;
@@ -341,6 +365,18 @@ async function handleDownload(arch) {
     return;
   }
 
+  // 点之前再核对一次清单：页面可能是几分钟前的缓存，拿旧 size 去切新文件，
+  // 拼出来的 dmg 会少掉一截。刷新失败就退回页面上的数据，由长度校验兜底。
+  try {
+    const fresh = await fetchRelease({ fresh: true });
+    if (fresh) {
+      lastRelease = fresh;
+      renderRelease();
+    }
+  } catch {
+    /* 网络抖动：继续用页面上的清单 */
+  }
+
   const file = lastRelease.files?.[arch];
   if (!file) {
     showToast(messages[currentLang]['download.unavailable']);
@@ -377,6 +413,11 @@ async function handleDownload(arch) {
       },
       controller.signal,
     );
+
+    // 总长度必须与清单一致：少一截的 dmg 只会让用户看到「文件已损坏」。
+    if (blob.size !== file.size) {
+      throw new Error(`size mismatch: ${blob.size}/${file.size}`);
+    }
 
     paintProgress(file.size, file.size, startedAt);
     saveBlob(blob, file.name);
