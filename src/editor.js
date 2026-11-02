@@ -267,11 +267,13 @@ function extensionsFor(onChange, onPasteImage) {
   ];
 }
 
-export function createEditor({ parent, onChange, onPasteImage }) {
+export function createEditor({ parent, onChange, onPasteImage, onScroll }) {
   const view = new EditorView({
     parent,
     state: EditorState.create({ doc: '', extensions: extensionsFor(onChange, onPasteImage) }),
   });
+
+  if (onScroll) view.scrollDOM.addEventListener('scroll', onScroll, { passive: true });
 
   return {
     view,
@@ -288,6 +290,46 @@ export function createEditor({ parent, onChange, onPasteImage }) {
       view.setState(
         EditorState.create({ doc: value, extensions: extensionsFor(onChange, onPasteImage) }),
       );
+    },
+    /**
+     * 视口锚点：顶部那一行在文档里的位置 + 行内像素偏移，外加光标。
+     * 只记像素的话，换字号或改窗口宽度就指错行了。
+     */
+    captureScroll() {
+      const scroller = view.scrollDOM;
+      const top = Math.max(0, scroller.scrollTop);
+      const block = view.lineBlockAtHeight(top);
+      return {
+        pos: Math.min(block.from, view.state.doc.length),
+        offset: Math.max(0, top - block.top),
+        selection: view.state.selection.main.head,
+      };
+    },
+    /**
+     * 把视口放回锚点，并把光标也放回去 —— 光标停在原来那处，重新开始打字时
+     * 视口才不会又被浏览器拽回顶部。
+     */
+    restoreScroll(snapshot) {
+      if (!snapshot || !Number.isInteger(snapshot.pos)) return false;
+
+      const doc = view.state.doc;
+      const pos = Math.min(Math.max(0, snapshot.pos), doc.length);
+      const offset = Math.max(0, Number(snapshot.offset) || 0);
+
+      const place = () => {
+        view.scrollDOM.scrollTop = view.lineBlockAt(pos).top + offset;
+      };
+
+      const head = Number.isInteger(snapshot.selection)
+        ? Math.min(Math.max(0, snapshot.selection), doc.length)
+        : null;
+      if (head !== null) view.dispatch({ selection: { anchor: head }, scrollIntoView: false });
+
+      // 内容刚换过时布局还没稳定（第一帧的 scrollTop 会被随后的测量覆盖），
+      // 交给 CodeMirror 自己的测量周期落位，再留两帧兜住高度二次变化。
+      view.requestMeasure({ read: () => null, write: place });
+      requestAnimationFrame(() => requestAnimationFrame(place));
+      return true;
     },
     focus: () => view.focus(),
     /** Re-measure after the container width changes (split view toggling). */

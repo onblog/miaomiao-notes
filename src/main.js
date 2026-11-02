@@ -3,6 +3,7 @@ import './styles/app.css';
 import { createEditor } from './editor.js';
 import { renderMarkdown, renderMermaid } from './preview.js';
 import { createMockApi } from './mock-api.js';
+import { loadScroll, saveScroll } from './scroll-memory.js';
 import { t, setLanguage, getLanguage, applyI18n } from './i18n.js';
 
 // In a plain browser (Vite dev without Electron) fall back to in-memory data
@@ -50,10 +51,36 @@ const el = {
   themeToggle: document.getElementById('btn-theme'),
 };
 
+const SCROLL_SAVE_DELAY = 400;
+let scrollTimer = null;
+
+/** 记住「这篇笔记读到哪」。滚动事件很密，落点后节流一次就够。 */
+function rememberScroll() {
+  if (!state.activeNote) return;
+  saveScroll(state.activeNote, editor.captureScroll());
+}
+
+function scheduleScrollSave() {
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(rememberScroll, SCROLL_SAVE_DELAY);
+}
+
+/** 关窗口 / 切到后台时把最后的位置补一次，节流里的那次未必来得及跑。 */
+function flushScroll() {
+  clearTimeout(scrollTimer);
+  rememberScroll();
+}
+
+window.addEventListener('beforeunload', flushScroll);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushScroll();
+});
+
 const editor = createEditor({
   parent: el.editorHost,
   onChange: onDocChange,
   onPasteImage: handleImageFiles,
+  onScroll: scheduleScrollSave,
 });
 
 /* ---------------------------------------------------------------- helpers */
@@ -328,6 +355,8 @@ async function refresh() {
 async function openNote(path) {
   if (path === state.activeNote) return;
   await flushSave();
+  // 换篇之前先把当前这篇的阅读位置落盘，否则切走就丢了。
+  rememberScroll();
 
   const result = await api.notes.read(path);
   if (!result.ok) {
@@ -350,6 +379,8 @@ async function openNote(path) {
   el.titleInput.value = stemOf(path.split('/').pop());
   el.contentDate.textContent = t('note.updated', { time: formatDate(result.data.mtime) });
   applyViewMode(state.settings?.defaultView ?? 'edit');
+  // 视图可见之后才恢复：预览模式下编辑器尺寸是 0，scrollTop 设不进去。
+  editor.restoreScroll(loadScroll(path));
   el.emptyState.hidden = true;
 
   if (result.data.conflicts?.length) {
