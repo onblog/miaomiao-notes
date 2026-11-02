@@ -139,19 +139,114 @@
   color: var(--text-link);
 }
 
-/* Markdown 语法着色：颜色在 editor.js 的 HighlightStyle 里（它生成哈希 class），
-   这里只补 lezer 没有高亮标签的两类节点（行内代码 / 围栏代码内容），
-   由 editor.js 的 codeDecorations 打上 class。 */
+/* Markdown 语法着色：字重/字号/灰度在 editor.js 的 HighlightStyle 里（它生成哈希 class），
+   有颜色的三类元素在这里定义 —— 行内代码文字、围栏代码 token、列表标记。
 
-.cm-editor .cm-inline-code {
-  color: var(--text-body);
-  border-radius: 4px;
-  background: var(--code-inline-bg);
-  box-shadow: inset 0 0 0 1px var(--border-subtle);
+   为什么选择器要写成 .cm-editor .cm-content .xxx 三个 class：
+   CodeMirror 的 HighlightStyle 会生成 `.ͼy.ͼz` 这种双 class 规则，并且注入在页面样式之后；
+   同权重下它会赢，所以这里固定提到 0,3,0，并且在需要的地方连子节点（*）一起指定 ——
+   标记符号和 token 文本外面都还套着一层自带 color 的哈希 span。 */
+
+/* 行内代码：底色 + 独立字色（与预览区 :not(pre) > code 同一套 token）。
+   内容同样被 monospace 标签包了一层，需要连同子节点一起改色。 */
+.cm-editor .cm-content .cm-inline-code,
+.cm-editor .cm-content .cm-inline-code * {
+  color: var(--code-inline-text);
 }
 
-.cm-editor .cm-code-text {
+.cm-editor .cm-content .cm-inline-code {
+  border-radius: 4px;
+  background: var(--code-inline-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 16%, transparent);
+}
+
+.cm-editor .cm-content .cm-code-text {
   font-family: var(--font-mono);
   font-size: 0.94em;
-  color: var(--text-body);
+}
+
+/* 围栏代码块：整块共用一层代码底色，首尾行收圆角；
+   左侧 2px 竖线对应截图的代码块边线，正文缩进 12px 让边线和字之间留白。 */
+.cm-editor .cm-content .cm-code-line {
+  padding-left: 12px;
+  padding-right: 12px;
+  background: var(--code-bg);
+  box-shadow: inset 2px 0 0 var(--code-block-edge);
+  font-family: var(--font-mono);
+  font-size: 0.94em;
+  /* 代码按 1.85 的正文行距会显得散，块内收紧到 1.62 */
+  line-height: 1.62;
+}
+
+.cm-editor .cm-content .cm-code-line-first {
+  padding-top: 4px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.cm-editor .cm-content .cm-code-line-last {
+  padding-bottom: 4px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* token 色板与 styles/app.css 的 .hljs-* 分组保持一一对应：
+   同一个 --code-* token 同时决定预览区与写作区的颜色。
+   CodeMirror 会给 token 文本再包一层带自己 color 的哈希 span（.ͼw 等），
+   子元素自带颜色会盖掉父级，所以每条规则都要连子节点一起指定。 */
+.cm-editor .cm-content .cm-tok-comment,
+.cm-editor .cm-content .cm-tok-comment * {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.cm-editor .cm-content .cm-tok-keyword,
+.cm-editor .cm-content .cm-tok-keyword * {
+  color: var(--code-keyword);
+}
+
+.cm-editor .cm-content .cm-tok-string,
+.cm-editor .cm-content .cm-tok-string * {
+  color: var(--code-string);
+}
+
+.cm-editor .cm-content .cm-tok-type,
+.cm-editor .cm-content .cm-tok-type * {
+  color: var(--code-type);
+}
+
+.cm-editor .cm-content .cm-tok-number,
+.cm-editor .cm-content .cm-tok-number * {
+  color: var(--code-number);
+}
+
+.cm-editor .cm-content .cm-tok-function,
+.cm-editor .cm-content .cm-tok-function * {
+  color: var(--code-function);
+}
+
+.cm-editor .cm-content .cm-tok-attr,
+.cm-editor .cm-content .cm-tok-attr * {
+  color: var(--code-attr);
+}
+
+.cm-editor .cm-content .cm-tok-punct,
+.cm-editor .cm-content .cm-tok-punct * {
+  color: var(--code-punct);
+}
+
+/*
+ * 列表标记：无序 - 与有序 1. 用两种颜色区分，正文不受影响。
+ * 标记符号本身还被 HighlightStyle 的 processingInstruction 包了一层（.ͼy 等），
+ * 子元素自带 color 会盖掉父元素，所以必须连子节点一起指定颜色。
+ */
+.cm-editor .cm-content .cm-list-bullet,
+.cm-editor .cm-content .cm-list-bullet * {
+  color: var(--marker-bullet);
+  font-weight: 600;
+}
+
+.cm-editor .cm-content .cm-list-ordered,
+.cm-editor .cm-content .cm-list-ordered * {
+  color: var(--marker-ordered);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }

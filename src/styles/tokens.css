@@ -123,6 +123,12 @@
   --caret: #2a5c86;
   --text-link: #2a5c86;
   --search-match-bg: rgba(42, 92, 134, 0.16);
+
+  /* 写作区列表标记：无序走品牌暖橘、有序走冷蓝，只作用于 - 与 1. 这两个符号，
+     正文一律保持中性色。对比度：无序 4.89:1、有序 6.89:1。 */
+  --marker-bullet: #b0552f;
+  --marker-ordered: #2a5c86;
+  --code-block-edge: rgba(42, 92, 134, 0.28);
 }
 
 /* ------------------------------------------------------------------
@@ -186,6 +192,11 @@
   --caret: #e08a62;
   --text-link: #8fb8da;
   --search-match-bg: rgba(143, 184, 218, 0.18);
+
+  /* 写作区列表标记（对比度：无序 9.06:1、有序 8.74:1） */
+  --marker-bullet: #f0a582;
+  --marker-ordered: #8fb8da;
+  --code-block-edge: rgba(143, 184, 218, 0.30);
 
   color-scheme: dark;
 }
