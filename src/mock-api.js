@@ -81,19 +81,25 @@ iCloud 是最终一致同步，冲突副本长这样：\`笔记 2.md\`。
 ];
 
 function buildList(store) {
-  return [...store.values()].map((note) => ({
-    path: note.path,
-    name: note.path.split('/').pop(),
-    folder: note.folder,
-    title: note.title,
-    snippet: note.content
-      .split('\n')
-      .filter((line) => line.trim() && !line.startsWith('#'))
-      .join(' ')
-      .slice(0, 110),
-    mtime: Date.now() - Math.floor(Math.random() * 86400000),
-    size: note.content.length,
-  }));
+  // 与真实 files.cjs 对齐：标题 = 文件名，heading 只用于搜索命中
+  return [...store.values()].map((note) => {
+    const name = note.path.split('/').pop();
+    const headingLine = note.content.split('\n').find((line) => /^#{1,6}\s+\S/.test(line));
+    return {
+      path: note.path,
+      name,
+      folder: note.folder,
+      title: name.replace(/\.(md|markdown|mdown|txt)$/i, ''),
+      heading: headingLine ? headingLine.replace(/^#{1,6}\s+/, '').trim() : '',
+      snippet: note.content
+        .split('\n')
+        .filter((line) => line.trim() && !line.startsWith('#'))
+        .join(' ')
+        .slice(0, 110),
+      mtime: Date.now() - Math.floor(Math.random() * 86400000),
+      size: note.content.length,
+    };
+  });
 }
 
 const defaults = {
@@ -198,7 +204,6 @@ export function createMockApi() {
         data: `${notePath.replace(/\.md$/, '').split('/').pop()}/${Date.now()}${ext}`,
       }),
       reveal: async () => ({ ok: true }),
-      menu: async () => ({ ok: true, data: null }),
     },
     app: {
       version: async () => ({ ok: true, data: { version: '1.1.0', platform: 'darwin' } }),
@@ -217,7 +222,6 @@ export function createMockApi() {
         return { ok: true, data: true };
       },
     },
-    dialog: { confirm: async () => true },
     settings: {
       get: async () => ({ ok: true, data: { ...mockSettings } }),
       set: async (patch) => {

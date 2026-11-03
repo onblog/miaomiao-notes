@@ -111,7 +111,16 @@
       <main class="content" id="content" data-view="edit" aria-label="笔记内容">
         <header class="content__header" id="content-header" hidden>
           <div class="content__meta">
-            <input class="title-input" id="title-input" type="text" spellcheck="false" />
+            <!-- 只读展示：标题就是文件名，改名入口只有笔记列表的行内编辑（点这里会跳过去） -->
+            <input
+              class="title-input"
+              id="title-input"
+              type="text"
+              spellcheck="false"
+              readonly
+              data-i18n-title="action.rename"
+              title="重命名"
+            />
             <span class="content__date" id="content-date"></span>
           </div>
           <div class="content__actions">
