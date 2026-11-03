@@ -89,8 +89,8 @@
   --text-muted: #52504d;
   /* 6.05:1：时间戳、占位符、设置提示 */
   --text-faint: #5e5d5a;
-  /* 16.30:1 —— 写作区正文比阅读区再深一档，长文打字时光标周围更“实” */
-  --text-editor: #191816;
+  /* 17.05:1 —— 写作区正文比阅读区再深两档，长文打字时光标周围更“实” */
+  --text-editor: #141311;
   --text-inverse: #ffffff;
 
   /* 品牌（暖橘保留为品牌重音，只出现在光标、激活条与列表标记上） */
@@ -166,8 +166,8 @@
   --text-body: #e9eaec;
   --text-muted: #a3a4a5;
   --text-faint: #8b8c8e;
-  /* 18.15:1 —— 写作区正文比阅读区再亮一档 */
-  --text-editor: #f7f8f9;
+  /* 18.62:1 —— 写作区正文比阅读区再亮两档 */
+  --text-editor: #fafbfc;
   --text-inverse: #0f1011;
 
   --accent: #e08a62;
