@@ -118,6 +118,7 @@ const messages = {
     'meta.title': '喵喵笔记 · 本地优先的 Markdown 笔记应用',
     brand: '喵喵笔记',
     'nav.stats': '数据',
+    'nav.sibling': '喵喵剪贴板',
     'hero.title': '喵喵笔记',
     'hero.tagline': '一只喵喵的本地 Markdown 笔记应用',
     'hero.desc': '笔记就是 iCloud Drive 里的普通 .md 文件，多台 Mac 自动同步。完全免费，不需要登录。',
@@ -166,6 +167,7 @@ const messages = {
     'meta.title': 'Miaomiao Notes · A local-first Markdown notes app for macOS',
     brand: 'Miaomiao Notes',
     'nav.stats': 'Stats',
+    'nav.sibling': 'Miaomiao Bar',
     'hero.title': 'Miaomiao Notes',
     'hero.tagline': 'A local-first Markdown notes app for macOS',
     'hero.desc':
