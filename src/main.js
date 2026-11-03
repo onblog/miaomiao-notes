@@ -376,7 +376,7 @@ async function openNote(path) {
 
   el.contentHeader.hidden = false;
   el.emptyState.hidden = true;
-  el.titleInput.value = stemOf(path.split('/').pop());
+  el.titleInput.textContent = stemOf(path.split('/').pop());
   el.contentDate.textContent = t('note.updated', { time: formatDate(result.data.mtime) });
   applyViewMode(state.settings?.defaultView ?? 'edit');
   // 视图可见之后才恢复：预览模式下编辑器尺寸是 0，scrollTop 设不进去。
@@ -570,7 +570,7 @@ async function renameActive() {
   }
 
   state.activeNote = target;
-  el.titleInput.value = safe;
+  el.titleInput.textContent = safe;
   await refresh();
   renderNotes();
 }
@@ -1375,14 +1375,6 @@ el.search.addEventListener('input', () => {
   state.query = el.search.value.trim();
   renderNotes();
 });
-
-el.titleInput.addEventListener('keydown', (event) => {
-  if (event.key === 'Enter') {
-    event.preventDefault();
-    el.titleInput.blur();
-  }
-});
-el.titleInput.addEventListener('blur', renameActive);
 
 window.addEventListener('keydown', (event) => {
   const meta = event.metaKey || event.ctrlKey;

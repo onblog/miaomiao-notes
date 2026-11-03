@@ -483,7 +483,7 @@ body.is-resizing {
   -webkit-app-region: drag;
 }
 
-.content__header input,
+.content__header :is(input, h1),
 .content__header button {
   -webkit-app-region: no-drag;
 }
@@ -493,14 +493,18 @@ body.is-resizing {
   flex: 1;
 }
 
+/* 标题只做展示：重命名的唯一入口是右上角「更多操作」，所以这里不留焦点、
+   不留光标，点击不产生任何反应。 */
 .title-input {
   display: block;
   width: 100%;
+  margin: 0;
   font-size: 21px;
   font-weight: 650;
   /* 负字距只适合西文大标题，中文 21px 下会把笔画挤在一起 */
   letter-spacing: 0;
   color: var(--text-strong);
+  cursor: default;
   user-select: text;
 }
 
