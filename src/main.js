@@ -450,7 +450,50 @@ function paintPreview() {
   el.previewHost.innerHTML = renderMarkdown(editor.getValue(), noteBaseDir());
   // 内容已整体替换，旧指纹必须作废，否则并发重绘时会误以为「渲染过了」
   delete el.previewHost.dataset.mermaidKey;
-  void renderMermaid(el.previewHost, state.settings?.theme === 'dark' ? 'dark' : 'cream');
+  // mermaid 会把代码块整块换成图，换行开关只该挂在真正的代码块上，所以等它跑完
+  void renderMermaid(el.previewHost, state.settings?.theme === 'dark' ? 'dark' : 'cream').then(() =>
+    decorateCodeBlocks(el.previewHost),
+  );
+}
+
+/**
+ * 给每个「多行」代码块右上角挂一个「自动换行」开关。
+ * 状态是全局的：点任意一块的按钮，所有多行代码块一起换行，并写进 settings.json；
+ * 再点一次取消。单行代码块没有换行可谈，不加按钮；mermaid 已被换成图，跳过。
+ */
+function decorateCodeBlocks(host) {
+  if (!host) return;
+  const wrapping = Boolean(state.settings?.codeWrap);
+
+  for (const pre of host.querySelectorAll('pre')) {
+    if (pre.closest('.code-block')) continue;
+    const code = pre.querySelector('code');
+    if (!code || code.classList.contains('language-mermaid')) continue;
+    // 末尾换行不算一行，否则每个代码块都会被当成多行
+    if (code.textContent.replace(/\n+$/, '').split('\n').length < 2) continue;
+
+    const block = document.createElement('div');
+    block.className = 'code-block';
+    pre.replaceWith(block);
+    block.appendChild(pre);
+
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'code-block__wrap';
+    toggle.setAttribute('aria-pressed', String(wrapping));
+    toggle.textContent = t('code.wrap');
+    toggle.title = t(wrapping ? 'code.wrap.off' : 'code.wrap');
+    block.appendChild(toggle);
+  }
+}
+
+/** 换行开关的即时视觉状态：按钮文案不变，用 aria-pressed + 底色表示开/关。 */
+function syncCodeWrapButtons(on) {
+  el.previewHost.dataset.codeWrap = on ? 'on' : 'off';
+  for (const button of el.previewHost.querySelectorAll('.code-block__wrap')) {
+    button.setAttribute('aria-pressed', String(on));
+    button.title = t(on ? 'code.wrap.off' : 'code.wrap');
+  }
 }
 
 function onDocChange() {
@@ -844,6 +887,8 @@ let closeSettingsDialog = null;
 function applySettings(next) {
   state.settings = next;
   document.documentElement.dataset.theme = next.theme === 'dark' ? 'dark' : 'cream';
+  // 代码块换行是全局开关，主题/语言变化时也要重新贴到新渲染的块上
+  syncCodeWrapButtons(Boolean(next.codeWrap));
   document.documentElement.style.setProperty('--editor-font-size', `${next.fontSize}px`);
   // 正文字体：写作区和阅读区共用一套，值只存 id，字体栈交给 tokens.css
   const fontId = CONTENT_FONT_IDS.includes(next.fontFamily) ? next.fontFamily : 'pingfang';
@@ -1352,6 +1397,16 @@ el.viewButton.addEventListener('click', cycleView);
    #锚点留在本地交给浏览器滚动；http(s)/mailto 交系统浏览器；其他协议（相对路径、file:、javascript:）
    既不导航也不打开。 */
 el.previewHost.addEventListener('click', (event) => {
+  const wrapToggle =
+    event.target instanceof Element ? event.target.closest('.code-block__wrap') : null;
+  if (wrapToggle) {
+    event.preventDefault();
+    const next = !state.settings?.codeWrap;
+    syncCodeWrapButtons(next); // 先就地翻状态，IPC 往返期间不闪
+    void saveSettings({ codeWrap: next });
+    return;
+  }
+
   const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
   if (!anchor) return;
   const href = anchor.getAttribute('href') ?? '';

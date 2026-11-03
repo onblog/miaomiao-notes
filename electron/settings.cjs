@@ -33,6 +33,8 @@ const DEFAULTS = {
   sortBy: 'mtime',
   /** show a two-line preview under each title */
   showSnippet: true,
+  /** soft-wrap multi-line code blocks in the reading pane */
+  codeWrap: false,
   /** 'edit' | 'preview' | 'split' — how a note opens */
   defaultView: 'edit',
   /** disable the cat float animation and other transitions */
@@ -101,6 +103,7 @@ function sanitize(input) {
 
   if (['mtime', 'ctime', 'title'].includes(input.sortBy)) out.sortBy = input.sortBy;
   if (typeof input.showSnippet === 'boolean') out.showSnippet = input.showSnippet;
+  if (typeof input.codeWrap === 'boolean') out.codeWrap = input.codeWrap;
   if (VIEW_MODES.includes(input.defaultView)) {
     out.defaultView = input.defaultView;
   } else if (typeof input.defaultPreview === 'boolean') {

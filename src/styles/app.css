@@ -914,6 +914,83 @@ body.is-resizing {
   box-shadow: none;
   color: var(--text-body);
 }
+
+/* 多行代码块外壳：圆角、底色、边框都搬到这一层，右上角才有地方挂按钮；
+   代码本身仍在自己那层滚动，所以横向滚动时按钮不会跟着跑。
+   font-size 放在外壳上，1em 的上下间距就和原来 <pre> 的默认间距一致。 */
+.preview-host .code-block {
+  position: relative;
+  overflow: hidden;
+  margin: 1em 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  background: var(--code-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.preview-host .code-block > pre {
+  margin: 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+/* 「自动换行」开关：全局状态，点任意一块，所有多行代码块一起换行 */
+/* 平时不显示：代码块第一行往往顶到右边，常驻会压住代码；
+   悬停/聚焦浮出（底色不透明，压住的那一小块代码不会被看穿）。
+   换行开着时一直显示成暖橙胶囊，状态一眼可见。 */
+.preview-host .code-block__wrap {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  height: 21px;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  /* 整块代码可以连按钮一起选进剪贴板，按钮文字不该混进复制的代码里 */
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.preview-host .code-block:hover .code-block__wrap,
+.preview-host .code-block__wrap:focus-visible {
+  opacity: 1;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--text-strong) 9%, var(--code-bg));
+  border-color: var(--border-subtle);
+  box-shadow: var(--shadow-tight);
+}
+
+/* 开启状态换成暖橙胶囊：一眼知道「现在是换行的」，又不至于每块都抢镜 */
+.preview-host .code-block__wrap[aria-pressed='true'] {
+  opacity: 0.8;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+.preview-host .code-block:hover .code-block__wrap[aria-pressed='true'],
+.preview-host .code-block__wrap[aria-pressed='true']:focus-visible {
+  opacity: 1;
+}
+
+/* 换行开启：长行折行，长 URL 也不撑出横向滚动条 */
+.preview-host[data-code-wrap='on'] .code-block > pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .preview-host table {
   width: 100%;
   border-collapse: collapse;

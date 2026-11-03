@@ -110,6 +110,7 @@ const defaults = {
   restoreLastNote: true,
   sortBy: 'mtime',
   showSnippet: true,
+  codeWrap: false,
   defaultView: 'edit',
   reduceMotion: false,
 };
