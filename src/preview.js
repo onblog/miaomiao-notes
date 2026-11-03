@@ -31,7 +31,9 @@ const md = new MarkdownIt({
 md.use(anchor, { permalink: false });
 md.use(attrs);
 md.use(footnote);
-md.use(taskLists, { enabled: true, label: true });
+/* 只要 `<input type="checkbox">` 这一层语义，勾选态在下面换成自绘方框：
+   原生复选框是系统蓝 + 固定 14px，跟暖纸主题打架，阅读区点了也不会回写 markdown。 */
+md.use(taskLists, { enabled: false, label: false });
 md.use(texmath, {
   engine: katex,
   delimiters: 'dollars',
@@ -39,12 +41,29 @@ md.use(texmath, {
 });
 
 /**
+ * 把任务清单的 `<input type="checkbox">` 换成自绘方框。
+ * 阅读区是只读视图：状态放在 data-checked 上交给 CSS 画，语义靠 role/aria 保留
+ * （原生控件再 stylize 也还是系统控件，M7 明确不接受）。
+ */
+const TASK_INPUT = /<input class="task-list-item-checkbox"[^>]*>/g;
+
+function drawTaskCheck(html) {
+  return html.replace(TASK_INPUT, (tag) => {
+    const checked = /\schecked(=|"|\s|>)/.test(tag);
+    return (
+      `<span class="task-check" data-checked="${checked}" role="checkbox"` +
+      ` aria-checked="${checked}" aria-disabled="true"></span>`
+    );
+  });
+}
+
+/**
  * Render markdown to HTML. Raw HTML is disabled, so output is safe to inject.
  * `baseDir` (absolute) rewrites relative image paths to file:// URLs so pasted
  * screenshots render inside the preview.
  */
 export function renderMarkdown(source, baseDir) {
-  const html = md.render(String(source || ''));
+  const html = drawTaskCheck(md.render(String(source || '')));
   if (!baseDir) return html;
 
   const root = baseDir.replace(/\/+$/, '');

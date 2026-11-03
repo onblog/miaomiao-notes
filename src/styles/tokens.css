@@ -107,6 +107,8 @@
   /* 结构 */
   --border-subtle: rgba(14, 13, 10, 0.10);
   --border-strong: rgba(14, 13, 10, 0.165);
+  /* 任务清单的空框描边：合成到纸上约 3.05:1，够看清又不抢正文 */
+  --check-border: rgba(14, 13, 10, 0.45);
   --shadow-soft: 0 1px 2px rgba(24, 22, 18, 0.05), 0 6px 18px rgba(24, 22, 18, 0.07);
   --shadow-pop: 0 10px 32px rgba(24, 22, 18, 0.16);
   --shadow-tight: 0 1px 2px rgba(24, 22, 18, 0.12);
@@ -178,6 +180,8 @@
   /* 分割线用中性白：分栏边界靠底色差说话，不靠一条实线切版面 */
   --border-subtle: rgba(255, 255, 255, 0.065);
   --border-strong: rgba(255, 255, 255, 0.10);
+  /* 任务清单的空框描边：合成到写作面约 3.16:1 */
+  --check-border: rgba(233, 234, 236, 0.38);
   --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.42);
   --shadow-pop: 0 10px 32px rgba(0, 0, 0, 0.58);
   --shadow-tight: 0 1px 2px rgba(0, 0, 0, 0.55);

@@ -826,6 +826,39 @@ body.is-resizing {
 .preview-host li {
   margin: 0.18em 0;
 }
+
+/* 任务清单勾选框：自绘方框，页面里没有 <input>（见 preview.js 的 drawTaskCheck）。
+   空框描边 1.5px（composited 约 3.05:1，看得见但不抢眼）；
+   勾选态用品牌色填底 + 反色勾（暖纸 4.34:1、暗色 7.24:1）。 */
+.preview-host li.task-list-item {
+  list-style: none;
+}
+.preview-host .task-check {
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  width: 14px;
+  height: 14px;
+  margin-right: 7px;
+  vertical-align: -2px;
+  border: 1.5px solid var(--check-border);
+  border-radius: 4px;
+}
+.preview-host .task-check[data-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+.preview-host .task-check[data-checked='true']::after {
+  content: '';
+  position: absolute;
+  left: 3.5px;
+  top: 0.5px;
+  width: 3.5px;
+  height: 7px;
+  border: solid var(--text-inverse);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(40deg);
+}
 .preview-host a {
   color: var(--text-link);
   text-decoration: none;
