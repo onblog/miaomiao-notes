@@ -823,6 +823,20 @@ body.is-resizing {
 .preview-host ol {
   padding-left: 1.3em;
 }
+/* 全局 `ul { list-style: none }` 是给侧栏和笔记列表做重置的，阅读区被一起抹掉了
+   项目符号，正文列表只剩缩进。这里 revert 回浏览器默认（圆点 / 圆环 / 方块按层级
+   自动切换，有序列表回到 decimal），标记色沿用写作区那两个 token。 */
+.preview-host ul,
+.preview-host ol {
+  list-style: revert;
+}
+.preview-host li::marker {
+  color: var(--marker-bullet);
+}
+.preview-host ol > li::marker {
+  color: var(--marker-ordered);
+  font-variant-numeric: tabular-nums;
+}
 .preview-host li {
   margin: 0.18em 0;
 }
