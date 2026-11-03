@@ -26,9 +26,6 @@ const state = {
   viewMode: 'edit',
   sidebarCollapsed: false,
   saveTimer: null,
-  // 行内改名：正在编辑的笔记路径 + 就地校验提示的 i18n key
-  renaming: null,
-  renameError: '',
 };
 
 const el = {
@@ -201,264 +198,6 @@ function askInput({ title, value = '', placeholder = '', confirmLabel = t('dialo
   });
 }
 
-/** 自绘确认框：替代原生 dialog.showMessageBox（M7 不接受原生控件，也避免原生菜单连锁崩溃）。 */
-function askConfirm({
-  title,
-  message,
-  detail = '',
-  confirmLabel = t('action.confirm'),
-  danger = false,
-}) {
-  return new Promise((resolve) => {
-    const backdrop = document.createElement('div');
-    backdrop.className = 'modal-backdrop';
-    backdrop.innerHTML = `
-      <div class="modal" role="dialog" aria-modal="true">
-        <h2 class="modal__title"></h2>
-        <p class="modal__message"></p>
-        <p class="modal__detail"></p>
-        <div class="modal__actions">
-          <button class="modal__cancel" type="button"></button>
-          <button class="modal__confirm" type="button"></button>
-        </div>
-      </div>
-    `;
-
-    const close = (result) => {
-      backdrop.remove();
-      document.removeEventListener('keydown', onKey);
-      resolve(result);
-    };
-    const onKey = (event) => {
-      if (event.key === 'Escape') close(false);
-      if (event.key === 'Enter') close(true);
-    };
-
-    backdrop.querySelector('.modal__title').textContent = title;
-    backdrop.querySelector('.modal__message').textContent = message;
-    const detailNode = backdrop.querySelector('.modal__detail');
-    detailNode.textContent = detail;
-    detailNode.hidden = !detail;
-
-    const cancel = backdrop.querySelector('.modal__cancel');
-    const confirm = backdrop.querySelector('.modal__confirm');
-    cancel.textContent = t('action.cancel');
-    confirm.textContent = confirmLabel;
-    confirm.classList.toggle('is-danger', danger);
-
-    cancel.addEventListener('click', () => close(false));
-    confirm.addEventListener('click', () => close(true));
-    backdrop.addEventListener('mousedown', (event) => {
-      if (event.target === backdrop) close(false);
-    });
-    document.addEventListener('keydown', onKey);
-
-    document.body.appendChild(backdrop);
-    confirm.focus();
-  });
-}
-
-/* -------------------------------------------------------------- 重命名 */
-
-/* 唯一的改名入口：笔记列表的行内编辑框（双击行标题、选中后按 Enter、
-   右键菜单「重命名」、点内容区顶部标题，走的都是这一个 startRename）。 */
-
-const ILLEGAL_NAME_CHARS = /[\\/:*?"<>|]/g;
-
-function sanitizeNoteName(raw) {
-  return String(raw ?? '').replace(ILLEGAL_NAME_CHARS, '').trim();
-}
-
-function renameTargetPath(path, name) {
-  const folder = folderOf(path);
-  return folder ? `${folder}/${name}.md` : `${name}.md`;
-}
-
-function startRename(path) {
-  if (!path) return;
-  state.renaming = path;
-  state.renameError = '';
-  renderNotes();
-}
-
-function stopRename() {
-  state.renaming = null;
-  state.renameError = '';
-  renderNotes();
-}
-
-/**
- * 真正落盘的一步：先 flushSave，否则防抖保存会在改名之后写回旧路径，
- * 凭空多出一个同内容的旧文件。
- */
-async function renameNote(path, name) {
-  const target = renameTargetPath(path, name);
-  const taken = state.notes.some(
-    (note) => note.path !== path && note.path.toLowerCase() === target.toLowerCase(),
-  );
-  if (taken) return { ok: false, error: 'rename.exists' };
-
-  await flushSave();
-  const result = await api.notes.rename(path, target);
-  if (!result.ok) {
-    toast(result.error || t('toast.renameFailed'), true);
-    return { ok: false, fatal: true };
-  }
-
-  // 就地更新，不做整库重读：列表标题现在就是文件名，改完立刻可见。
-  const moved = state.notes.find((note) => note.path === path);
-  if (moved) {
-    moved.path = target;
-    moved.name = `${name}.md`;
-    moved.title = name;
-  }
-  if (state.activeNote === path) {
-    // 「读到哪」是按路径存的，改名得把锚点搬到新 key 上
-    const anchor = loadScroll(path);
-    state.activeNote = target;
-    if (anchor != null) saveScroll(target, anchor);
-    el.titleInput.value = name;
-  }
-
-  state.renaming = null;
-  state.renameError = '';
-  renderNotes();
-  return { ok: true };
-}
-
-/** 行内输入框：Enter 提交、Esc 取消、失焦提交；校验失败就留在编辑态并就地提示。 */
-function createRenameInput(note, errorNode) {
-  const input = document.createElement('input');
-  input.className = 'note-item__rename';
-  input.type = 'text';
-  input.spellcheck = false;
-  input.autocomplete = 'off';
-  input.value = stemOf(note.name);
-  input.setAttribute('aria-label', t('action.rename'));
-
-  let settled = false;
-
-  const fail = (key) => {
-    state.renameError = key;
-    errorNode.hidden = false;
-    errorNode.textContent = t(key);
-    input.classList.add('is-invalid');
-    input.focus();
-    input.select();
-  };
-
-  const commit = async () => {
-    if (settled) return;
-    const next = sanitizeNoteName(input.value);
-    if (!next) {
-      fail('rename.empty');
-      return;
-    }
-    if (next === stemOf(note.name)) {
-      settled = true;
-      stopRename();
-      return;
-    }
-
-    settled = true;
-    input.disabled = true;
-    const result = await renameNote(note.path, next);
-    if (result.ok) return;
-    if (result.fatal) {
-      stopRename();
-      return;
-    }
-    settled = false;
-    input.disabled = false;
-    fail(result.error);
-  };
-
-  input.addEventListener('keydown', (event) => {
-    event.stopPropagation();
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void commit();
-    } else if (event.key === 'Escape') {
-      event.preventDefault();
-      settled = true;
-      stopRename();
-    }
-  });
-  input.addEventListener('blur', () => void commit());
-  input.addEventListener('click', (event) => event.stopPropagation());
-  input.addEventListener('dblclick', (event) => event.stopPropagation());
-  return input;
-}
-
-/* ---------------------------------------------------------- 自绘右键菜单 */
-
-let activeMenu = null;
-
-function closeNoteMenu() {
-  if (!activeMenu) return;
-  const { node, onPointerDown, onKeyDown } = activeMenu;
-  node.remove();
-  document.removeEventListener('pointerdown', onPointerDown, true);
-  document.removeEventListener('keydown', onKeyDown, true);
-  window.removeEventListener('resize', closeNoteMenu);
-  window.removeEventListener('blur', closeNoteMenu);
-  activeMenu = null;
-}
-
-/**
- * 笔记行的右键菜单。以前是主进程的 `Menu.popup`：原生控件（M7 不接受），
- * 而且菜单对象在回调之后会被 GC、AppKit 还在用它 —— 崩溃栈就是向已释放对象发消息。
- */
-function showNoteMenu(path, x, y) {
-  closeNoteMenu();
-
-  const node = document.createElement('div');
-  node.className = 'context-menu';
-  node.setAttribute('role', 'menu');
-
-  const entries = [
-    { label: t('action.rename'), run: () => startRename(path) },
-    { label: t('action.reveal'), run: () => api.notes.reveal(path) },
-    { label: t('action.delete'), danger: true, run: () => deleteNote(path) },
-  ];
-
-  for (const entry of entries) {
-    const item = document.createElement('button');
-    item.type = 'button';
-    item.className = `context-menu__item${entry.danger ? ' is-danger' : ''}`;
-    item.setAttribute('role', 'menuitem');
-    item.textContent = entry.label;
-    item.addEventListener('click', () => {
-      closeNoteMenu();
-      entry.run();
-    });
-    node.appendChild(item);
-  }
-
-  document.body.appendChild(node);
-
-  const rect = node.getBoundingClientRect();
-  node.style.left = `${Math.max(8, Math.min(x, innerWidth - rect.width - 8))}px`;
-  node.style.top = `${Math.max(8, Math.min(y, innerHeight - rect.height - 8))}px`;
-
-  const onPointerDown = (event) => {
-    if (!node.contains(event.target)) closeNoteMenu();
-  };
-  const onKeyDown = (event) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation();
-      closeNoteMenu();
-    }
-  };
-  document.addEventListener('pointerdown', onPointerDown, true);
-  document.addEventListener('keydown', onKeyDown, true);
-  window.addEventListener('resize', closeNoteMenu);
-  window.addEventListener('blur', closeNoteMenu);
-  activeMenu = { node, onPointerDown, onKeyDown };
-
-  node.querySelector('button')?.focus();
-}
-
 /* ---------------------------------------------------------------- render */
 
 /**
@@ -531,10 +270,7 @@ function visibleNotes() {
     const lower = state.query.toLowerCase();
     notes = notes.filter(
       (note) =>
-        note.title.toLowerCase().includes(lower) ||
-        // 标题以文件名为准后，正文里的 heading 不再参与命名，但搜索仍应命中它
-        (note.heading || '').toLowerCase().includes(lower) ||
-        note.snippet.toLowerCase().includes(lower),
+        note.title.toLowerCase().includes(lower) || note.snippet.toLowerCase().includes(lower),
     );
   }
   return sortNotes(notes);
@@ -554,34 +290,22 @@ function renderNotes() {
   }
 
   for (const note of notes) {
-    const renaming = state.renaming === note.path;
     const li = document.createElement('li');
     const button = document.createElement('button');
     button.type = 'button';
-    button.className =
-      `note-item${state.activeNote === note.path ? ' is-active' : ''}${renaming ? ' is-renaming' : ''}`;
+    button.className = `note-item${state.activeNote === note.path ? ' is-active' : ''}`;
     button.dataset.path = note.path;
 
     const title = document.createElement('div');
     title.className = 'note-item__title';
-    if (state.activeNote === note.path && state.dirty && !renaming) {
+    if (state.activeNote === note.path && state.dirty) {
       const dot = document.createElement('span');
       dot.className = 'note-item__dot';
       title.appendChild(dot);
     }
-
-    // 校验失败的提示节点先建出来，输入框提交失败时直接往里写，不重建这一行
-    const error = document.createElement('div');
-    error.className = 'note-item__rename-error';
-    error.hidden = true;
-
-    if (renaming) {
-      title.appendChild(createRenameInput(note, error));
-    } else {
-      const titleText = document.createElement('span');
-      titleText.textContent = note.title || stemOf(note.name);
-      title.appendChild(titleText);
-    }
+    const titleText = document.createElement('span');
+    titleText.textContent = note.title || stemOf(note.name);
+    title.appendChild(titleText);
 
     const meta = document.createElement('div');
     meta.className = 'note-item__meta';
@@ -593,27 +317,14 @@ function renderNotes() {
     snippet.className = 'note-item__snippet';
     snippet.textContent = note.snippet || t('list.blank');
 
-    if (renaming) {
-      button.append(title, error, meta);
-    } else {
-      button.append(title, meta, snippet);
-    }
-    button.addEventListener('click', () => {
-      if (state.renaming === note.path) return;
-      void openNote(note.path);
+    button.append(title, meta, snippet);
+    button.addEventListener('click', () => openNote(note.path));
+    button.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      noteMenu(note.path);
     });
     li.appendChild(button);
     el.noteList.appendChild(li);
-  }
-
-  if (state.renaming) {
-    const input = el.noteList.querySelector('.note-item__rename');
-    if (input) {
-      input.focus();
-      input.select();
-    } else {
-      state.renaming = null;
-    }
   }
 }
 
@@ -841,14 +552,36 @@ async function createFolder() {
   toast(t('toast.folderCreated'));
 }
 
+async function renameActive() {
+  if (!state.activeNote) return;
+  const current = stemOf(state.activeNote.split('/').pop());
+  const next = await askInput({ title: t('dialog.rename.title'), value: current, confirmLabel: t('action.rename') });
+  if (!next || next === current) return;
+
+  const safe = next.replace(/[\\/:*?"<>|]/g, '').trim();
+  if (!safe) return;
+
+  const folder = folderOf(state.activeNote);
+  const target = folder ? `${folder}/${safe}.md` : `${safe}.md`;
+  const result = await api.notes.rename(state.activeNote, target);
+  if (!result.ok) {
+    toast(result.error || t('toast.renameFailed'), true);
+    return;
+  }
+
+  state.activeNote = target;
+  el.titleInput.value = safe;
+  await refresh();
+  renderNotes();
+}
+
 async function deleteNote(path = state.activeNote) {
   if (!path) return;
-  const confirmed = await askConfirm({
+  const confirmed = await api.dialog.confirm({
     title: t('dialog.delete.title'),
     message: t('dialog.delete.message', { name: stemOf(path.split('/').pop()) }),
     detail: t('dialog.delete.detail'),
     confirmLabel: t('action.delete'),
-    danger: true,
   });
   if (!confirmed) return;
 
@@ -866,11 +599,20 @@ async function deleteNote(path = state.activeNote) {
     el.editorHost.hidden = true;
     el.emptyState.hidden = false;
   }
-  if (state.renaming === path) {
-    state.renaming = null;
-    state.renameError = '';
-  }
   await refresh();
+}
+
+/** Right-click menu on a note, rendered by the main process. */
+async function noteMenu(path) {
+  const result = await api.notes.menu(path);
+  if (!result.ok || !result.data) return;
+
+  if (result.data === 'rename') {
+    await openNote(path);
+    await renameActive();
+  } else if (result.data === 'delete') {
+    await deleteNote(path);
+  }
 }
 
 /**
@@ -1516,9 +1258,10 @@ function openSettings() {
     const chosen = await api.vault.choose();
     if (!chosen.ok || !chosen.data) return;
 
-    const confirmed = await askConfirm({
+    const confirmed = await api.dialog.confirm({
       title: t('settings.vault'),
       message: t('settings.vault.confirm', { path: chosen.data }),
+      detail: '',
       confirmLabel: t('settings.vault.change'),
     });
     if (!confirmed) return;
@@ -1613,14 +1356,12 @@ el.sidebarToggle.addEventListener('click', () => setSidebarCollapsed(!state.side
 el.listResizer.addEventListener('pointerdown', startListDrag);
 el.listResizer.addEventListener('keydown', onResizerKey);
 el.listResizer.addEventListener('dblclick', resetListWidth);
-document.getElementById('btn-more').addEventListener('click', (event) => {
-  if (!state.activeNote) return;
-  const rect = event.currentTarget.getBoundingClientRect();
-  showNoteMenu(state.activeNote, rect.left, rect.bottom + 6);
+document.getElementById('btn-more').addEventListener('click', () => {
+  if (state.activeNote) noteMenu(state.activeNote);
 });
 
-/* 笔记操作只有一个入口：内容区右上角的「更多操作」按钮。
-   行上不再挂右键菜单、也不抢双击 —— 列表点击就只负责打开笔记。 */
+el.langToggle.addEventListener('click', toggleLanguage);
+el.themeToggle.addEventListener('click', toggleTheme);
 
 document.getElementById('btn-settings').addEventListener('click', openSettings);
 api.onOpenSettings(openSettings);
@@ -1635,8 +1376,13 @@ el.search.addEventListener('input', () => {
   renderNotes();
 });
 
-/* 内容区标题框只读：它不是第二个改名入口，点一下就跳去列表里改那一行。 */
-el.titleInput.addEventListener('click', () => startRename(state.activeNote));
+el.titleInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    el.titleInput.blur();
+  }
+});
+el.titleInput.addEventListener('blur', renameActive);
 
 window.addEventListener('keydown', (event) => {
   const meta = event.metaKey || event.ctrlKey;

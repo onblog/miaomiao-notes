@@ -618,6 +618,46 @@ function registerIpc() {
     shell.showItemInFolder(target);
     return true;
   });
+
+  handle('notes:menu', (relative) => {
+    const target = path.join(files.root, relative);
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      const menu = Menu.buildFromTemplate([
+        { label: '重命名', click: () => done('rename') },
+        {
+          label: '在 Finder 中显示',
+          click: () => {
+            shell.showItemInFolder(target);
+            done(null);
+          },
+        },
+        { type: 'separator' },
+        { label: '删除', click: () => done('delete') },
+      ]);
+
+      menu.popup({ window: mainWindow, callback: () => done(null) });
+    });
+  });
+
+  handle('dialog:confirm', async ({ title, message, detail, confirmLabel }) => {
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: 'question',
+      buttons: [confirmLabel || currentMenuText().ok, currentMenuText().cancel],
+      defaultId: 0,
+      cancelId: 1,
+      title: title || '喵喵笔记',
+      message: message || '',
+      detail: detail || '',
+    });
+    return result.response === 0;
+  });
 }
 
 /* ------------------------------------------------------------------ menu */

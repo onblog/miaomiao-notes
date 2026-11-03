@@ -123,15 +123,11 @@ async function atomicWrite(target, content) {
 }
 
 /**
- * Read the first few hundred bytes to derive the list title and a snippet.
+ * Read the first few hundred bytes to derive a list title and snippet.
  * Avoids loading a whole vault into memory just to render the middle column.
- *
- * 标题就是文件名。以前列表标题取正文第一个 `# 标题`，所以重命名文件之后列表纹丝不动
- * —— 文件名变了，标题文本没变。现在文件名是笔记名的唯一来源，正文里的 heading 只作为
- * 可搜索文本单独返回（列表搜索会一并命中）。
  */
 async function readHead(file, fileName) {
-  const title = fileName.replace(/\.(md|markdown|mdown|txt)$/i, '');
+  const fallbackTitle = fileName.replace(/\.(md|markdown|mdown|txt)$/i, '');
   try {
     const handle = await fs.open(file, 'r');
     const buffer = Buffer.alloc(700);
@@ -141,8 +137,11 @@ async function readHead(file, fileName) {
     const text = buffer.subarray(0, bytesRead).toString('utf8');
     const lines = text.split('\n');
 
-    const headingLine = lines.find((line) => /^#{1,6}\s+\S/.test(line));
-    const heading = headingLine ? headingLine.replace(/^#{1,6}\s+/, '').trim() : '';
+    let title = fallbackTitle;
+    const heading = lines.find((line) => /^#{1,6}\s+\S/.test(line));
+    if (heading) {
+      title = heading.replace(/^#{1,6}\s+/, '').trim() || fallbackTitle;
+    }
 
     const body = lines
       .filter((line) => line.trim() && !/^#{1,6}\s+/.test(line) && !/^---\s*$/.test(line))
@@ -151,9 +150,9 @@ async function readHead(file, fileName) {
       .replace(/\s+/g, ' ')
       .trim();
 
-    return { title, heading, snippet: (body || heading).slice(0, 110) };
+    return { title, snippet: body.slice(0, 110) };
   } catch {
-    return { title, heading: '', snippet: '' };
+    return { title: fallbackTitle, snippet: '' };
   }
 }
 
@@ -201,13 +200,12 @@ function createFileService(vault) {
           const info = await statOrNull(file);
           if (!info) continue;
 
-          const { title, heading, snippet } = await readHead(file, entry.name);
+          const { title, snippet } = await readHead(file, entry.name);
           out.push({
             path: rel,
             name: entry.name,
             folder: relative,
             title,
-            heading,
             snippet,
             mtime: info.mtimeMs,
             ctime: info.birthtimeMs || info.mtimeMs,

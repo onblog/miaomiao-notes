@@ -29,6 +29,11 @@ contextBridge.exposeInMainWorld('miaomiao', {
     saveImage: (notePath, base64, ext) =>
       ipcRenderer.invoke('notes:save-image', notePath, base64, ext),
     reveal: (path) => ipcRenderer.invoke('notes:reveal', path),
+    menu: (path) => ipcRenderer.invoke('notes:menu', path),
+  },
+
+  dialog: {
+    confirm: (options) => ipcRenderer.invoke('dialog:confirm', options),
   },
 
   app: {
