@@ -4,8 +4,8 @@
    2. [data-theme='xxx'] 只放颜色
    换肤只需要新增一个主题颜色块，无需改动任何组件样式。
 
-   色温说明：写作面走中性（饱和度 0–16%），暖橘只作为品牌重音出现在
-   光标、选区、激活态与图标里。长文写作时标记色不再抢注意力。
+   色温说明：两套主题分别是暖米纸（iOS 扁平）与子夜黑，写作面走低饱和中性色，
+   暖橘只作为品牌重音出现在光标、激活态与列表标记里，长文写作时不抢注意力。
    ------------------------------------------------------------------ */
 
 :root {
@@ -40,6 +40,10 @@
     'Noto Color Emoji', sans-serif;
   --editor-font-size: 15px;
 
+  /* 正文/阅读区行宽上限：写作面占窗口的比例，夹在 760–1200px 之间。
+     全屏时正文基本铺满写作面，两侧只留一点呼吸；窄窗口时仍不会把正文压成一条。 */
+  --measure: clamp(760px, 90%, 1200px);
+
   /* 滚动条：视觉 2px，颜色跟着主题强调色走（明暗主题自动适配）。
      外框 4px 只用来保留可抓取区域，滑块靠 content-box 裁切露 2px。 */
   --scrollbar-size: 4px;
@@ -56,147 +60,151 @@
 }
 
 /* ------------------------------------------------------------------
-   主题：中性纸白（light）
-   键名沿用 'cream'，是为了兼容老的设置与已存的 data-theme 值；
-   实际配色已从奶油暖黄改为冷调纸白，表面饱和度 55.6% → 15.8%。
-   对比度：正文 11.50:1、标题 15.41:1、次要 5.93:1、提示 5.26:1、
-   行内代码 7.44:1、链接 6.89:1、激活项 5.12:1，全部过 WCAG AA。
+   主题：iOS 扁平（light）—— 参考 dsh-dream-skin 的同名皮肤
+   暖米纸底 #f3f0e7 系，正文近黑、链接走 iOS 蓝 #1d6cc1；
+   层级靠 3–4% 的明度差，边框一律中性墨色 alpha，不用彩色描边。
+   键名沿用 'cream'，为了兼容老的设置与已存的 data-theme 值。
+   对比度：正文 13.90:1、标题 15.31:1、次要 7.38:1、提示 6.05:1、
+   链接 4.86:1、行内代码 7.20:1，全部过 WCAG AA。
    ------------------------------------------------------------------ */
 
 [data-theme='cream'] {
   /* 表面 */
-  --surface-app: #f4f5f7;
-  --surface-sidebar: rgba(237, 240, 244, 0.72);
-  --surface-list: #f9fafb;
-  --surface-content: #fcfcfd;
-  --surface-raised: #ffffff;
-  --surface-hover: rgba(70, 85, 105, 0.055);
-  --surface-active: rgba(70, 85, 105, 0.10);
-  --surface-search: rgba(70, 85, 105, 0.06);
+  --surface-app: #efebe3;
+  /* 0.92 的不透明度：保留一点窗口毛玻璃，又不至于被系统材质冲淡 */
+  --surface-sidebar: rgba(241, 237, 229, 0.92);
+  --surface-list: #f3f0e7;
+  --surface-content: #f8f5ee;
+  --surface-raised: #fbf7ee;
+  --surface-hover: rgba(14, 13, 10, 0.045);
+  --surface-active: rgba(14, 13, 10, 0.075);
+  --surface-search: rgba(14, 13, 10, 0.055);
 
   /* 文字 */
-  --text-strong: #1f2328;
-  /* 11.50:1 —— 正文再亮一点就显得发灰，这一档是长文阅读的底线 */
-  --text-body: #34383e;
-  /* 5.93:1：摘要、日期、路径这类次要文字 */
-  --text-muted: #5c636c;
-  /* 5.26:1：时间戳、占位符、设置提示，小字号也要看得清 */
-  --text-faint: #646b74;
+  --text-strong: #1f1e1b;
+  /* 13.90:1 —— 暖纸上正文走近黑，长文才不显灰 */
+  --text-body: #272623;
+  /* 7.38:1：摘要、日期、路径这类次要文字 */
+  --text-muted: #52504d;
+  /* 6.05:1：时间戳、占位符、设置提示 */
+  --text-faint: #5e5d5a;
   --text-inverse: #ffffff;
 
-  /* 品牌（暖橘保留为品牌重音，不再参与正文与语法色） */
-  --accent: #d46a45;
-  --accent-strong: #b04f2e;
-  --accent-soft: #fbe7df;
-  --accent-line: #e9a88d;
+  /* 品牌（暖橘保留为品牌重音，只出现在光标、激活条与列表标记上） */
+  --accent: #c25b34;
+  --accent-strong: #a8481f;
+  --accent-soft: #f7e5db;
+  --accent-line: #e2a184;
 
   /* 语义 */
-  --danger: #b83834;
+  --danger: #b6322d;
   --danger-soft: #fbeaea;
-  --warning: #8a6413;
+  --warning: #896100;
   --warning-soft: #fbf3e6;
-  --success: #3f7a52;
+  --success: #007935;
 
   /* 结构 */
-  --border-subtle: rgba(70, 85, 105, 0.10);
-  --border-strong: rgba(70, 85, 105, 0.17);
-  --shadow-soft: 0 1px 2px rgba(30, 40, 55, 0.05), 0 6px 18px rgba(30, 40, 55, 0.07);
-  --shadow-pop: 0 10px 32px rgba(30, 40, 55, 0.16);
-  --shadow-tight: 0 1px 2px rgba(30, 40, 55, 0.12);
-  --overlay: rgba(18, 24, 32, 0.26);
+  --border-subtle: rgba(14, 13, 10, 0.10);
+  --border-strong: rgba(14, 13, 10, 0.165);
+  --shadow-soft: 0 1px 2px rgba(24, 22, 18, 0.05), 0 6px 18px rgba(24, 22, 18, 0.07);
+  --shadow-pop: 0 10px 32px rgba(24, 22, 18, 0.16);
+  --shadow-tight: 0 1px 2px rgba(24, 22, 18, 0.12);
+  --overlay: rgba(20, 18, 14, 0.26);
 
-  /* 代码块语法色（highlight.js token）：全部 ≥ 5:1，注释 3.76:1 */
-  --code-bg: #f1f3f6;
+  /* 代码块语法色（highlight.js token）：都在 5:1 以上 */
+  --code-bg: #ece8df;
   --code-keyword: #6c4f8c;
-  --code-string: #3e6b4a;
+  --code-string: #2f6340;
   --code-number: #96592a;
-  --code-comment: #737d88;
-  --code-function: #3f628c;
+  --code-comment: #5b626b;
+  --code-function: #1d5c99;
   --code-type: #2f6b7c;
   --code-attr: #7a5a3a;
-  --code-punct: #737d88;
+  --code-punct: #5b626b;
 
-  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 */
-  --code-inline-bg: #eff2f5;
-  --code-inline-text: #35506b;
-  --selection-bg: rgba(42, 92, 134, 0.15);
-  --caret: #2a5c86;
-  --text-link: #2a5c86;
-  --search-match-bg: rgba(42, 92, 134, 0.16);
+  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 —— 链接按 iOS 蓝走
+     行内代码只用中性墨色淡底 + 等宽字形，不再染蓝，和正文共处一个色温 */
+  --code-inline-bg: rgba(14, 13, 10, 0.055);
+  --code-inline-text: #41403c;
+  --selection-bg: rgba(29, 108, 193, 0.16);
+  --caret: #1d6cc1;
+  --text-link: #1d6cc1;
+  --search-match-bg: rgba(29, 108, 193, 0.16);
 
-  /* 写作区列表标记：无序走品牌暖橘、有序走冷蓝，只作用于 - 与 1. 这两个符号，
-     正文一律保持中性色。对比度：无序 4.89:1、有序 6.89:1。 */
+  /* 写作区列表标记：无序走品牌暖橘、有序走链接蓝（4.86:1 / 6.9:1） */
   --marker-bullet: #b0552f;
-  --marker-ordered: #2a5c86;
-  --code-block-edge: rgba(42, 92, 134, 0.28);
+  --marker-ordered: #1d6cc1;
 }
 
 /* ------------------------------------------------------------------
-   主题：深墨（dark）
-   冷炭底 #131519，和白天那张纸是同一条中性色温线；
-   层级靠 6–8% 的明度差拉开，不靠暖色饱和。
-   对比度：正文 11.56:1、标题 15.28:1、次要 7.71:1、提示 6.59:1、
-   行内代码 9.14:1、链接 8.74:1。
+   主题：子夜黑（dark）—— 参考 dsh-dream-skin 的同名皮肤
+   中性近黑底 #09090a / #141415 / #0e0e0f 三级，亮中性字 + 蓝链接；
+   层级靠明度差与白色 alpha 边框拉开，不用蓝灰色调。
+   对比度：正文 16.03:1、标题 17.68:1、次要 7.73:1、提示 5.73:1、
+   链接 7.60:1、行内代码 10.45:1。
    ------------------------------------------------------------------ */
 
 [data-theme='dark'] {
-  --surface-app: #0f1114;
-  --surface-sidebar: rgba(23, 26, 30, 0.72);
-  --surface-list: #191c21;
-  --surface-content: #131519;
-  --surface-raised: #1d2126;
-  --surface-hover: rgba(200, 215, 235, 0.06);
-  --surface-active: rgba(200, 215, 235, 0.12);
-  --surface-search: rgba(200, 215, 235, 0.06);
+  --surface-app: #09090a;
+  /* 0.97：深色主题碰上浅色系统外观时，窗口毛玻璃会把侧栏冲成灰色，只留一点透感 */
+  --surface-sidebar: rgba(9, 9, 10, 0.97);
+  --surface-list: #141415;
+  /* 写作面比列表高半档，正文不贴在一块纯黑板上 */
+  --surface-content: #0e0e0f;
+  --surface-raised: #1b1b1c;
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-active: rgba(255, 255, 255, 0.085);
+  --surface-search: rgba(255, 255, 255, 0.075);
 
-  --text-strong: #e8ebef;
-  /* 11.56:1 —— 深色底上的正文不用再压暗，否则整屏像蒙了一层灰 */
-  --text-body: #c9ced6;
-  --text-muted: #a2a9b3;
-  --text-faint: #949ca7;
-  --text-inverse: #14171b;
+  --text-strong: #f4f5f6;
+  /* 16.03:1 —— 深底上正文走亮中性色，长文读起来才不费眼 */
+  --text-body: #e9eaec;
+  --text-muted: #a3a4a5;
+  --text-faint: #8b8c8e;
+  --text-inverse: #0f1011;
 
   --accent: #e08a62;
   --accent-strong: #f0a582;
-  --accent-soft: #2a2320;
-  --accent-line: #4d3a30;
+  --accent-soft: #241d19;
+  --accent-line: #45342b;
 
-  --danger: #f08085;
-  --danger-soft: #352223;
-  --warning: #e0b06a;
-  --warning-soft: #2c2618;
-  --success: #8cc79c;
+  --danger: #ef675c;
+  --danger-soft: #2b1614;
+  --warning: #fac053;
+  --warning-soft: #2b2314;
+  --success: #6ed889;
 
-  --border-subtle: rgba(200, 215, 235, 0.09);
-  --border-strong: rgba(200, 215, 235, 0.15);
-  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.45), 0 6px 18px rgba(0, 0, 0, 0.36);
-  --shadow-pop: 0 10px 32px rgba(0, 0, 0, 0.55);
-  --shadow-tight: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --overlay: rgba(4, 6, 9, 0.62);
+  /* 分割线用中性白：分栏边界靠底色差说话，不靠一条实线切版面 */
+  --border-subtle: rgba(255, 255, 255, 0.065);
+  --border-strong: rgba(255, 255, 255, 0.10);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.5), 0 6px 18px rgba(0, 0, 0, 0.42);
+  --shadow-pop: 0 10px 32px rgba(0, 0, 0, 0.58);
+  --shadow-tight: 0 1px 2px rgba(0, 0, 0, 0.55);
+  --overlay: rgba(0, 0, 1, 0.72);
 
-  /* 代码块语法色：全部 ≥ 7:1（注释 4.52:1 是最低的一个） */
-  --code-bg: #191c21;
+  /* 代码块语法色：都在 6:1 以上（注释 6.35:1 是最低的一档） */
+  --code-bg: #08090a;
   --code-keyword: #b49bd8;
   --code-string: #8fbe9a;
-  --code-number: #e0b477;
-  --code-comment: #7c848f;
+  --code-number: #fac053;
+  --code-comment: #8b929c;
   --code-function: #8fb8da;
   --code-type: #7fbdcc;
-  --code-attr: #d9a07a;
-  --code-punct: #6e7883;
+  --code-attr: #e0a173;
+  --code-punct: #8b929c;
 
-  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 */
-  --code-inline-bg: #1b1f24;
-  --code-inline-text: #a8c4dc;
-  --selection-bg: rgba(143, 184, 218, 0.20);
+  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 —— 链接按子夜黑的蓝走
+     行内代码只用中性白淡底 + 等宽字形，不再染蓝，和正文共处一个色温 */
+  --code-inline-bg: rgba(255, 255, 255, 0.065);
+  --code-inline-text: #d8dee7;
+  --selection-bg: rgba(136, 158, 246, 0.24);
   --caret: #e08a62;
-  --text-link: #8fb8da;
-  --search-match-bg: rgba(143, 184, 218, 0.18);
+  --text-link: #889ef6;
+  --search-match-bg: rgba(136, 158, 246, 0.20);
 
-  /* 写作区列表标记（对比度：无序 9.06:1、有序 8.74:1） */
+  /* 写作区列表标记（无序 9.06:1、有序 7.60:1） */
   --marker-bullet: #f0a582;
-  --marker-ordered: #8fb8da;
-  --code-block-edge: rgba(143, 184, 218, 0.30);
+  --marker-ordered: #889ef6;
 
   color-scheme: dark;
 }

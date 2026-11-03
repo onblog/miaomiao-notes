@@ -30,7 +30,11 @@
 
 /* 加 .editor-host 前缀是为了压过 CodeMirror 运行时注入的 `.cm-content{padding:4px 0}` */
 .editor-host .cm-content {
-  padding: 22px 34px 45vh;
+  /* 行宽上限走 --measure（tokens.css 统一定义）：窗口变宽时正文跟着放宽，
+     但始终给两侧留白，不一路顶到边缘 */
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding: 26px 28px 45vh;
   caret-color: var(--caret);
   user-select: text;
 }
@@ -148,16 +152,17 @@
    标记符号和 token 文本外面都还套着一层自带 color 的哈希 span。 */
 
 /* 行内代码：底色 + 独立字色（与预览区 :not(pre) > code 同一套 token）。
-   内容同样被 monospace 标签包了一层，需要连同子节点一起改色。 */
+   内容同样被 monospace 标签包了一层，需要连同子节点一起改色。
+   不再描边：一行里有三五个 chip 时，每圈 1px 硬边会把句子切成串小方块。 */
 .cm-editor .cm-content .cm-inline-code,
 .cm-editor .cm-content .cm-inline-code * {
   color: var(--code-inline-text);
 }
 
 .cm-editor .cm-content .cm-inline-code {
-  border-radius: 4px;
+  padding: 0.06em 0.3em;
+  border-radius: 5px;
   background: var(--code-inline-bg);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 16%, transparent);
 }
 
 .cm-editor .cm-content .cm-code-text {
@@ -165,13 +170,12 @@
   font-size: 0.94em;
 }
 
-/* 围栏代码块：整块共用一层代码底色，首尾行收圆角；
-   左侧 2px 竖线对应截图的代码块边线，正文缩进 12px 让边线和字之间留白。 */
+/* 围栏代码块：整块共用一层代码底色，首尾行收圆角。
+   去掉左侧那根 2px 竖线：一条通栏硬边会把版面切开，改用底色 + 圆角成形。 */
 .cm-editor .cm-content .cm-code-line {
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: 14px;
+  padding-right: 14px;
   background: var(--code-bg);
-  box-shadow: inset 2px 0 0 var(--code-block-edge);
   font-family: var(--font-mono);
   font-size: 0.94em;
   /* 代码按 1.85 的正文行距会显得散，块内收紧到 1.62 */
@@ -179,12 +183,12 @@
 }
 
 .cm-editor .cm-content .cm-code-line-first {
-  padding-top: 4px;
+  padding-top: 6px;
   border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .cm-editor .cm-content .cm-code-line-last {
-  padding-bottom: 4px;
+  padding-bottom: 6px;
   border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 

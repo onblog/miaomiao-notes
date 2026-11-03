@@ -328,7 +328,8 @@ body.is-resizing {
   margin: 0;
   font-size: 17px;
   font-weight: 680;
-  letter-spacing: -0.2px;
+  /* 中文不走负字距：挤在一起会显得锐 */
+  letter-spacing: 0;
   color: var(--text-strong);
 }
 
@@ -496,8 +497,9 @@ body.is-resizing {
   display: block;
   width: 100%;
   font-size: 21px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-weight: 650;
+  /* 负字距只适合西文大标题，中文 21px 下会把笔画挤在一起 */
+  letter-spacing: 0;
   color: var(--text-strong);
   user-select: text;
 }
@@ -581,9 +583,16 @@ body.is-resizing {
   /* 阅读区跟随「正文字体」设置，代码块仍然用等宽字体 */
   font-family: var(--font-content);
   font-size: 15px;
-  line-height: 1.65;
+  line-height: 1.75;
   color: var(--text-body);
   user-select: text;
+}
+
+/* 阅读区与写作区共用同一条行宽（--measure），两边版面节奏一致 */
+.preview-host > * {
+  max-width: var(--measure);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ------------------------------------------------------- 边写边读（分栏） */
@@ -824,7 +833,8 @@ body.is-resizing {
 .preview-host a {
   color: var(--text-link);
   text-decoration: none;
-  border-bottom: 1px solid var(--accent-line);
+  /* 下划线跟着链接蓝走，不再固定暖橘，免得蓝字配暖线 */
+  border-bottom: 1px solid color-mix(in srgb, var(--text-link) 36%, transparent);
 }
 .preview-host blockquote {
   padding: 0.15em 0.85em;
@@ -837,10 +847,9 @@ body.is-resizing {
   font-family: var(--font-mono);
   font-size: 0.88em;
   padding: 0.15em 0.38em;
-  border-radius: 4px;
+  border-radius: 5px;
   background: var(--code-inline-bg);
   color: var(--code-inline-text);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--code-inline-text) 14%, transparent);
 }
 .preview-host pre {
   padding: 10px 12px;
