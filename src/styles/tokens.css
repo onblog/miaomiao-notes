@@ -62,11 +62,11 @@
 
 /* ------------------------------------------------------------------
    主题：iOS 扁平（light）—— 参考 dsh-dream-skin 的同名皮肤
-   暖米纸底 #f3f0e7 系，正文近黑、链接走 iOS 蓝 #1d6cc1；
+   暖米纸底 #f3f0e7 系，正文近黑、链接走正蓝 #1567dd；
    层级靠 3–4% 的明度差，边框一律中性墨色 alpha，不用彩色描边。
    键名沿用 'cream'，为了兼容老的设置与已存的 data-theme 值。
    对比度：正文 13.90:1、标题 15.31:1、次要 7.38:1、提示 6.05:1、
-   链接 4.86:1、行内代码 7.20:1，全部过 WCAG AA。
+   链接 4.80:1、行内代码 7.20:1，全部过 WCAG AA。
    ------------------------------------------------------------------ */
 
 [data-theme='cream'] {
@@ -122,23 +122,28 @@
   --code-string: #2f6340;
   --code-number: #96592a;
   --code-comment: #5b626b;
-  --code-function: #1d5c99;
+  /* 与 --blue 同色相、深一档：代码底色比纸底暗，4.80:1 的蓝在 #ece8df 上只剩 4.28:1 */
+  --code-function: #1359cd;
   --code-type: #2f6b7c;
   --code-attr: #7a5a3a;
   --code-punct: #5b626b;
 
-  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中 —— 链接按 iOS 蓝走
+  /* 编辑区：行内代码 / 选区 / 光标 / 链接 / 搜索命中
      行内代码只用中性墨色淡底 + 等宽字形，不再染蓝，和正文共处一个色温 */
   --code-inline-bg: rgba(14, 13, 10, 0.055);
   --code-inline-text: #41403c;
-  --selection-bg: rgba(29, 108, 193, 0.16);
-  --caret: #1d6cc1;
-  --text-link: #1d6cc1;
-  --search-match-bg: rgba(29, 108, 193, 0.16);
 
-  /* 写作区列表标记：无序走品牌暖橘、有序走链接蓝（4.86:1 / 6.9:1） */
+  /* 全站唯一的蓝：链接、有序列表序号、光标、选区、搜索命中都从它派生。
+     4.80:1 —— 色相 215°，是正蓝，不带紫调，纸底上也不发灰。 */
+  --blue: #1567dd;
+  --text-link: var(--blue);
+  --caret: var(--blue);
+  --marker-ordered: var(--blue);
+  --selection-bg: color-mix(in srgb, var(--blue) 16%, transparent);
+  --search-match-bg: color-mix(in srgb, var(--blue) 16%, transparent);
+
+  /* 写作区列表标记：无序走品牌暖橘 */
   --marker-bullet: #b0552f;
-  --marker-ordered: #1d6cc1;
 }
 
 /* ------------------------------------------------------------------
@@ -146,7 +151,7 @@
    中性近黑底 #09090a / #141415 / #0e0e0f 三级，亮中性字 + 蓝链接；
    层级靠明度差与白色 alpha 边框拉开，不用蓝灰色调。
    对比度：正文 16.03:1、标题 17.68:1、次要 7.73:1、提示 5.73:1、
-   链接 7.60:1、行内代码 10.45:1。
+   链接 7.72:1、行内代码 10.45:1。
    ------------------------------------------------------------------ */
 
 [data-theme='dark'] {
@@ -199,7 +204,8 @@
   --code-string: #8fbe9a;
   --code-number: #fac053;
   --code-comment: #8b929c;
-  --code-function: #8fb8da;
+  /* 与 --blue 同一个值：深色代码底 #1a1b1d 上 6.90:1 */
+  --code-function: #5aa7ff;
   --code-type: #7fbdcc;
   --code-attr: #e0a173;
   --code-punct: #8b929c;
@@ -208,14 +214,17 @@
      行内代码只用中性白淡底 + 等宽字形，不再染蓝，和正文共处一个色温 */
   --code-inline-bg: rgba(255, 255, 255, 0.065);
   --code-inline-text: #d8dee7;
-  --selection-bg: rgba(136, 158, 246, 0.24);
+  /* 全站唯一的蓝：链接、有序列表序号、选区、搜索命中都从它派生。
+     7.72:1 —— 色相 212°，深底上是清楚的亮蓝，不再偏紫、不再发闷。 */
+  --blue: #5aa7ff;
+  --text-link: var(--blue);
+  --marker-ordered: var(--blue);
+  --selection-bg: color-mix(in srgb, var(--blue) 26%, transparent);
+  --search-match-bg: color-mix(in srgb, var(--blue) 22%, transparent);
   --caret: #e08a62;
-  --text-link: #889ef6;
-  --search-match-bg: rgba(136, 158, 246, 0.20);
 
-  /* 写作区列表标记（无序 9.06:1、有序 7.60:1） */
+  /* 写作区列表标记：无序走品牌暖橘 */
   --marker-bullet: #f0a582;
-  --marker-ordered: #889ef6;
 
   color-scheme: dark;
 }
