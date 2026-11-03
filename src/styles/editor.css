@@ -5,7 +5,7 @@
   background: var(--surface-content);
   font-family: var(--font-content);
   font-size: var(--editor-font-size, 15px);
-  color: var(--text-body);
+color: var(--text-editor);
 }
 
 .cm-editor.cm-focused {
