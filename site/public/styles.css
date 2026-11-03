@@ -375,6 +375,13 @@ main {
   }
 }
 
+/* 窄屏收起次要入口：跨站链接、语言切换和 GitHub 已经够用 */
+@media (max-width: 720px) {
+  .topbar__link--stats {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     transition: none !important;

@@ -117,7 +117,7 @@ const messages = {
   zh: {
     'meta.title': '喵喵笔记 · 本地优先的 Markdown 笔记应用',
     brand: '喵喵笔记',
-    'nav.stats': '数据',
+    'nav.stats': '统计',
     'nav.sibling': '喵喵剪贴板',
     'hero.title': '喵喵笔记',
     'hero.tagline': '一只喵喵的本地 Markdown 笔记应用',
