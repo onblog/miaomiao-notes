@@ -43,6 +43,7 @@ contextBridge.exposeInMainWorld('miaomiao', {
     openSite: () => ipcRenderer.invoke('app:open-site'),
     openProfile: () => ipcRenderer.invoke('app:open-profile'),
     openEmail: () => ipcRenderer.invoke('app:open-email'),
+    openExternal: (url) => ipcRenderer.invoke('app:open-external', url),
   },
 
   settings: {

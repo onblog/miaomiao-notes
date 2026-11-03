@@ -24,6 +24,7 @@ const {
 } = require('./icloud.cjs');
 const { createFileService } = require('./files.cjs');
 const settings = require('./settings.cjs');
+const { openExternalLink } = require('./links.cjs');
 
 // Load the Vite dev server only when explicitly asked, otherwise use dist/.
 const DEV_URL = process.env.VITE_DEV_SERVER_URL;
@@ -433,8 +434,17 @@ function createWindow() {
   }
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    // target=_blank / ⌘-click / window.open: never spawn a window, hand it to the OS.
+    openExternalLink(shell, url);
     return { action: 'deny' };
+  });
+
+  // 渲染进程自己发起的整页跳转（比如没被拦住的链接）会把应用本身导航走，
+  // 而应用没有地址栏，用户就回不来了：一律拦下，只交系统浏览器打开。
+  // 程序内调用 loadURL/loadFile 不触发这个事件，开发服务器的整页 reload 也不触发。
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    event.preventDefault();
+    openExternalLink(shell, url);
   });
 
   mainWindow.on('closed', () => {
@@ -550,6 +560,10 @@ function registerIpc() {
 
   // 渲染层需要邮箱原文来渲染「邮件」入口；空串表示本次构建没有配置。
   handle('app:site', () => ({ siteUrl: SITE_URL, contactEmail: CONTACT_EMAIL }));
+
+  // 阅读区里点到的链接走这里：校验通过才交给系统浏览器打开，
+  // 非法协议（file:、javascript:、自定义 handler）直接拒绝，返回 false。
+  handle('app:open-external', (url) => openExternalLink(shell, url));
 
   handle('settings:reset', () => {
     const next = settings.reset();

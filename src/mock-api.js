@@ -211,6 +211,11 @@ export function createMockApi() {
       openSite: async () => ({ ok: true }),
       openProfile: async () => ({ ok: true }),
       openEmail: async () => ({ ok: true }),
+      // 浏览器里没有系统浏览器可调，只记下最后一次请求，方便对照真实行为。
+      openExternal: async (url) => {
+        window.__mockOpenedExternal = String(url);
+        return { ok: true, data: true };
+      },
     },
     dialog: { confirm: async () => true },
     settings: {

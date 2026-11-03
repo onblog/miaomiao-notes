@@ -1340,6 +1340,18 @@ document.getElementById('image-input')?.addEventListener('change', async (event)
 document.getElementById('btn-new-note').addEventListener('click', createNote);
 document.getElementById('btn-empty-new').addEventListener('click', createNote);
 el.viewButton.addEventListener('click', cycleView);
+
+/* 阅读区的链接一律往外开：让窗口自己导航走会把笔记界面直接替换成网页，而且没有地址栏回不去。
+   #锚点留在本地交给浏览器滚动；http(s)/mailto 交系统浏览器；其他协议（相对路径、file:、javascript:）
+   既不导航也不打开。 */
+el.previewHost.addEventListener('click', (event) => {
+  const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+  if (!anchor) return;
+  const href = anchor.getAttribute('href') ?? '';
+  if (href.startsWith('#')) return;
+  event.preventDefault();
+  if (/^(https?:|mailto:)/i.test(href)) void api.app.openExternal(href);
+});
 el.sidebarToggle.addEventListener('click', () => setSidebarCollapsed(!state.sidebarCollapsed));
 el.listResizer.addEventListener('pointerdown', startListDrag);
 el.listResizer.addEventListener('keydown', onResizerKey);
