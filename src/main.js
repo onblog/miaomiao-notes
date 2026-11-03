@@ -139,6 +139,11 @@ function stemOf(name) {
   return name.replace(/\.(md|markdown|mdown|txt)$/i, '');
 }
 
+/** 列表里的名字永远取文件名（去掉 .md），不取正文标题。 */
+function noteDisplayName(note) {
+  return stemOf(note.name || note.path.split('/').pop());
+}
+
 function folderOf(path) {
   const index = path.lastIndexOf('/');
   return index === -1 ? '' : path.slice(0, index);
@@ -270,7 +275,9 @@ function visibleNotes() {
     const lower = state.query.toLowerCase();
     notes = notes.filter(
       (note) =>
-        note.title.toLowerCase().includes(lower) || note.snippet.toLowerCase().includes(lower),
+        noteDisplayName(note).toLowerCase().includes(lower) ||
+        note.title.toLowerCase().includes(lower) ||
+        note.snippet.toLowerCase().includes(lower),
     );
   }
   return sortNotes(notes);
@@ -304,7 +311,7 @@ function renderNotes() {
       title.appendChild(dot);
     }
     const titleText = document.createElement('span');
-    titleText.textContent = note.title || stemOf(note.name);
+    titleText.textContent = noteDisplayName(note);
     title.appendChild(titleText);
 
     const meta = document.createElement('div');
