@@ -457,9 +457,10 @@ function paintPreview() {
 }
 
 /**
- * 给每个「多行」代码块右上角挂一个「自动换行」开关。
- * 状态是全局的：点任意一块的按钮，所有多行代码块一起换行，并写进 settings.json；
- * 再点一次取消。单行代码块没有换行可谈，不加按钮；mermaid 已被换成图，跳过。
+ * 给每个代码块右上角挂一个「自动换行」开关。
+ * 状态是全局的：点任意一块的按钮，所有代码块一起换行，并写进 settings.json；
+ * 再点一次取消。只有一个长句子的代码块同样会横向溢出，所以也挂按钮；
+ * mermaid 已经被换成图，跳过。
  */
 function decorateCodeBlocks(host) {
   if (!host) return;
@@ -469,8 +470,6 @@ function decorateCodeBlocks(host) {
     if (pre.closest('.code-block')) continue;
     const code = pre.querySelector('code');
     if (!code || code.classList.contains('language-mermaid')) continue;
-    // 末尾换行不算一行，否则每个代码块都会被当成多行
-    if (code.textContent.replace(/\n+$/, '').split('\n').length < 2) continue;
 
     const block = document.createElement('div');
     block.className = 'code-block';
