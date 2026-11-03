@@ -31,8 +31,10 @@
 /* 加 .editor-host 前缀是为了压过 CodeMirror 运行时注入的 `.cm-content{padding:4px 0}` */
 .editor-host .cm-content {
   /* 行宽上限走 --measure（tokens.css 统一定义）：窗口变宽时正文跟着放宽，
-     但始终给两侧留白，不一路顶到边缘 */
-  max-width: var(--measure);
+     但始终给两侧留白，不一路顶到边缘。
+     加 2×28px 是因为这份 padding 在盒子内侧吃掉宽度：把内边距补回来，文本列宽
+     才和阅读区（行宽直接由容器内边距收）一致。 */
+  max-width: calc(var(--measure) + 56px);
   margin-inline: auto;
   padding: 26px 28px 45vh;
   caret-color: var(--caret);

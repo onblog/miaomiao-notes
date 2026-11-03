@@ -579,20 +579,16 @@ body.is-resizing {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 18px 24px 40px;
+  /* 行宽由容器内边距来收（--measure 在 tokens.css 统一定义），而不是给子元素上
+     auto 外边距：h1/p/table 各自带 margin 规则，特异性 (0,1,1) 压过 (0,1,0)，
+     auto 会被覆盖成 0，同一栏里代码块就比正文右移半个差值。 */
+  padding: 18px max(24px, calc((100% - var(--measure)) / 2)) 40px;
   /* 阅读区跟随「正文字体」设置，代码块仍然用等宽字体 */
   font-family: var(--font-content);
   font-size: 15px;
   line-height: 1.75;
   color: var(--text-body);
   user-select: text;
-}
-
-/* 阅读区与写作区共用同一条行宽（--measure），两边版面节奏一致 */
-.preview-host > * {
-  max-width: var(--measure);
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* ------------------------------------------------------- 边写边读（分栏） */
