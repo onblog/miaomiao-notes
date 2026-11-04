@@ -177,26 +177,49 @@ color: var(--text-editor);
   font-size: 0.94em;
 }
 
-/* 围栏代码块：整块共用一层代码底色，首尾行收圆角。
-   去掉左侧那根 2px 竖线：一条通栏硬边会把版面切开，改用底色 + 圆角成形。 */
+/* 围栏代码块：整块共用一层代码底色，首尾收圆角。
+   去掉左侧那根 2px 竖线：一条通栏硬边会把版面切开，改用底色 + 圆角成形。
+
+   底色不在这一层：CodeMirror 的选区层 z-index 是负的，铺在 .cm-line 上的不透明
+   底色会把选区整块盖住（编辑区里代码块划词看不到高亮就是这个原因）。底色改由
+   editor.js 的 codeBlockBackground 画到更低的图层里，这里只留排版。 */
 .cm-editor .cm-content .cm-code-line {
   padding-left: 14px;
   padding-right: 14px;
-  background: var(--code-bg);
   font-family: var(--font-mono);
   font-size: 0.94em;
   /* 代码按 1.85 的正文行距会显得散，块内收紧到 1.62 */
   line-height: 1.62;
 }
 
+/* 首尾行的上下留白仍旧按行给，圆角交给整块图层 */
 .cm-editor .cm-content .cm-code-line-first {
   padding-top: 6px;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
 }
 
 .cm-editor .cm-content .cm-code-line-last {
   padding-bottom: 6px;
-  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+/* 代码块底色图层：z-index 比 .cm-selectionLayer（-2）更低，
+   这样划词高亮落在底色之上、文字之下，与正文选区一模一样。
+   指针事件必须放行，否则会挡住编辑区的点击与拖选。 */
+.cm-editor .cm-scroller {
+  position: relative;
+}
+
+.cm-editor .cm-code-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -3;
+  pointer-events: none;
+}
+
+.cm-editor .cm-code-bg > div {
+  position: absolute;
+  background: var(--code-bg);
+  border-radius: var(--radius-md);
 }
 
 /* token 色板与 styles/app.css 的 .hljs-* 分组保持一一对应：

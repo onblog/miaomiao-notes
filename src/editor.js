@@ -91,6 +91,81 @@ function codeLineDecoration(isFirst, isLast) {
 }
 
 /**
+ * 围栏代码块的底色必须画在「选区层之下」，不能直接铺在 .cm-line 上。
+ *
+ * CodeMirror 用 drawSelection() 自己绘选区，那层 .cm-selectionLayer 的 z-index 是
+ * 负的（实测 -2，位于 scrollDOM 内）；而 Decoration.line 的底色属于内容层，压在
+ * 选区层上面 —— 于是整行不透明的代码底色把选区整块盖住，代码块里划词完全看不到
+ * 高亮。预览区没有这个问题：那里是浏览器原生选区，永远画在元素背景之上。
+ *
+ * 这里把底色降一层：一块绝对定位的 .cm-code-bg 图层（z-index 更低），按连续的
+ * .cm-code-line 分组画圆角矩形。底色因此回到「选区之下、文字之上」，代码块里的
+ * 划词和正文完全一致；首尾圆角也从逐行的 border-radius 改成整块一个矩形。
+ */
+const codeBlockBackground = ViewPlugin.fromClass(
+  class {
+    constructor(view) {
+      this.dom = document.createElement('div');
+      this.dom.className = 'cm-code-bg';
+      this.dom.setAttribute('aria-hidden', 'true');
+      view.scrollDOM.appendChild(this.dom);
+      this.paint(view);
+    }
+
+    update(update) {
+      // 只有会影响行位置/行集合的更新才重新测量，光标移动不触发
+      if (update.docChanged || update.viewportChanged || update.geometryChanged) {
+        this.paint(update.view);
+      }
+    }
+
+    destroy() {
+      this.dom.remove();
+    }
+
+    paint(view) {
+      const scroller = view.scrollDOM;
+      const lines = view.contentDOM.querySelectorAll('.cm-line.cm-code-line');
+
+      // 相邻的代码行属于同一个围栏块；块与块之间一定隔着非代码行
+      const blocks = [];
+      let current = null;
+      let previous = null;
+      for (const line of lines) {
+        if (previous && previous.nextElementSibling === line) {
+          current.last = line;
+        } else {
+          current = { first: line, last: line };
+          blocks.push(current);
+        }
+        previous = line;
+      }
+
+      // 图层是滚动容器的子元素，绝对定位坐标天然是内容坐标（随内容一起滚动），
+      // 所以这里把视口坐标加上 scrollTop/scrollLeft 换回去。
+      const origin = scroller.getBoundingClientRect();
+      const offsetX = origin.left - scroller.scrollLeft;
+      const offsetY = origin.top - scroller.scrollTop;
+
+      while (this.dom.childElementCount > blocks.length) this.dom.lastElementChild.remove();
+      while (this.dom.childElementCount < blocks.length) {
+        this.dom.appendChild(document.createElement('div'));
+      }
+
+      blocks.forEach((block, index) => {
+        const rect = this.dom.children[index];
+        const first = block.first.getBoundingClientRect();
+        const last = block.last.getBoundingClientRect();
+        rect.style.left = `${first.left - offsetX}px`;
+        rect.style.top = `${first.top - offsetY}px`;
+        rect.style.width = `${first.width}px`;
+        rect.style.height = `${last.bottom - first.top}px`;
+      });
+    }
+  },
+);
+
+/**
  * lezer 的 Markdown 语法把行内代码、围栏代码内容标成 InlineCode / CodeText，
  * 但列表标记（ListMark）无法区分有序/无序、代码块内容也没有逐 token 的高亮标签，
  * 这些都要靠遍历语法树补一层 class；颜色仍然由 editor.css 的 token 决定。
@@ -226,6 +301,7 @@ function extensionsFor(onChange, onPasteImage) {
     markdown({ base: markdownLanguage }),
     syntaxHighlighting(plainHighlight),
     syntaxDecorations,
+    codeBlockBackground,
     placeholder('写点什么吧，喵～'),
     keymap.of([
       ...defaultKeymap,
