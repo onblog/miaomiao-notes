@@ -201,6 +201,15 @@ color: var(--text-editor);
   padding-bottom: 6px;
 }
 
+/* 漏写收尾围栏时，空行之后的那截尾巴按正文显示。
+   lezer 仍把它算在 FencedCode 里，会给每个文本 span 套等宽字体和代码色，
+   所以要连子节点一起盖回来；字号不用改，这些行没有 .cm-code-line 的 0.94em。 */
+.cm-editor .cm-content .cm-code-tail,
+.cm-editor .cm-content .cm-code-tail * {
+  font-family: var(--font-content);
+  color: var(--text-body);
+}
+
 /* 代码块底色图层：z-index 比 .cm-selectionLayer（-2）更低，
    这样划词高亮落在底色之上、文字之下，与正文选区一模一样。
    指针事件必须放行，否则会挡住编辑区的点击与拖选。 */

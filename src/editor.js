@@ -90,6 +90,24 @@ function codeLineDecoration(isFirst, isLast) {
   return deco;
 }
 
+/** 漏写收尾围栏时，空行之后那截尾巴要还原成正文排版（见 decorateFencedCode）。 */
+const codeTailDecoration = Decoration.line({ class: 'cm-code-tail' });
+
+/**
+ * 没有收尾围栏时，代码块在写作区到哪里为止：从围栏行的下一行起，
+ * 遇到第一个空行（一行里只有空白也算空行，不是行尾换行）就停下。
+ * 一行都没有就直接结束，空行紧跟在围栏后面也一样。
+ */
+function blockEndAtBlankLine(doc, startLine) {
+  let end = startLine;
+  for (let number = startLine.number + 1; number <= doc.lines; number += 1) {
+    const line = doc.line(number);
+    if (line.text.trim() === '') break;
+    end = line;
+  }
+  return end;
+}
+
 /**
  * 围栏代码块的底色必须画在「选区层之下」，不能直接铺在 .cm-line 上。
  *
@@ -266,16 +284,35 @@ function decorateFencedCode(node, state, viewport, ranges, pushMark) {
   }
 
   const startLine = doc.lineAt(node.from);
-  const endLine = doc.lineAt(close ? Math.max(close.from, startLine.from) : node.to);
+  // 收尾围栏缺失时，语法树按 CommonMark 把后面所有内容都算进代码块 —— 漏打一次 ```
+  // 就会把大半篇笔记染成代码。写作区在这里收敛一下：遇到第一个空行就当作块结束。
+  // 只影响写作区的排版与着色，文件内容不变，预览区仍按标准 Markdown 渲染，
+  // 补上收尾围栏之后两边自然一致。
+  const closeLine = close ? doc.lineAt(Math.max(close.from, startLine.from)) : null;
+  const endLine = closeLine ?? blockEndAtBlankLine(doc, startLine);
   for (let number = startLine.number; number <= endLine.number; number += 1) {
     const line = doc.line(number);
     if (line.from > viewport.to || line.to < viewport.from) continue;
-    ranges.push(codeLineDecoration(number === startLine.number, number === endLine.number).range(line.from));
+    ranges.push(
+      codeLineDecoration(number === startLine.number, number === endLine.number).range(line.from),
+    );
   }
 
-  // 语言标记行之后就是代码正文；闭合围栏存在时正文到闭合围栏那一行为止
+  // 空行之后一直到语法树节点结尾仍是 CodeText，lezer 会给它们套等宽字体和代码色，
+  // 这里补一条行装饰把它们还原成正文排版（否则「块结束了但字还是代码样」）。
+  if (!closeLine) {
+    const nodeEnd = doc.lineAt(node.to).number;
+    for (let number = endLine.number + 1; number <= nodeEnd; number += 1) {
+      const line = doc.line(number);
+      if (line.from > viewport.to || line.to < viewport.from) continue;
+      ranges.push(codeTailDecoration.range(line.from));
+    }
+  }
+
+  // 语言标记行之后就是代码正文；闭合围栏存在时正文到闭合围栏那一行为止，
+  // 没有闭合围栏时只着色到空行前那一行
   const contentFrom = Math.min(doc.length, startLine.to + 1);
-  const contentTo = close ? doc.lineAt(close.from).from : node.to;
+  const contentTo = closeLine ? closeLine.from : endLine.to;
   if (contentTo <= contentFrom) return;
 
   const language = info ? doc.sliceString(info.from, info.to) : '';
