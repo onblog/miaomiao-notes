@@ -595,6 +595,16 @@ body.is-resizing {
   user-select: text;
 }
 
+/* 阅读区划词：和编辑区共用 --selection-bg 这一个 token。
+   不写这条时阅读区（正文、行内代码、整块代码、表格）会掉回浏览器默认的冷蓝
+   选区，暖橙主题里突然冒出一块蓝，而且蓝底压住语法色后代码几乎读不出来。
+   只设 background 不设 color：语法色要保留，靠半透明底色叠出来。
+   祖先上的 ::selection 会继承给所有后代，所以这两条覆盖整块阅读区。 */
+.preview-host::selection,
+.preview-host ::selection {
+  background: var(--selection-bg);
+}
+
 /* ------------------------------------------------------- 边写边读（分栏） */
 
 .content[data-view="split"] {
