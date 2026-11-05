@@ -15,3 +15,8 @@
 
 /app.js
   Cache-Control: no-cache
+
+# 图标换了，但 /favicon.ico 是固定路径不能改名；留 no-cache 让浏览器每次都
+# 校验（ETag 命中仍是 304），否则老访客会继续看到旧图标。
+/favicon.ico
+  Cache-Control: no-cache

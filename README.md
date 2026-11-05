@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="site/public/assets/icon.png" width="112" alt="Miaomiao Notes" />
+<img src="site/public/assets/icon-v2.png" width="112" alt="Miaomiao Notes" />
 
 <h1>喵喵笔记 · Miaomiao Notes</h1>
 
