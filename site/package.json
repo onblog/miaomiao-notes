@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
+    "deploy": "node scripts/render-seo.mjs && wrangler deploy",
     "check": "node --check src/index.js && node --check public/app.js",
     "release": "node scripts/publish-release.mjs"
   },

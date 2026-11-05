@@ -72,12 +72,19 @@ latest version is served; uploading a new one replaces the manifest.
 
 ```bash
 # shipping worker / static asset changes
-npm run deploy
+npm run deploy   # renders SEO files, then deploys
 
 # shipping a new app version (dmgs + manifest, no worker deploy needed)
 cd .. && npm run dist
 cd site && npm run release
 ```
+
+The public origin comes from `site.config.json` (`siteUrl`) — the one place the
+domain lives. `render-seo.mjs` runs before every deploy and stamps that value
+into each page's canonical / Open Graph URLs, `sitemap.xml` and `robots.txt`.
+Pass `SITE_URL` in the environment to point a fork at its own domain. Note that
+the render edits the HTML in place, so check `git status` before committing a
+local deploy.
 
 `npm run release` uploads both dmgs from `../release` into the `miaomiao` bucket
 and rewrites `latest.json`, so the site and the in-app update check pick the new
@@ -89,8 +96,10 @@ the shared `common` bucket (created once by hand, reused by every project on the
 account; this one only writes under the `miaomiao-notes/` prefix), and is already
 declared as the `R2_RELEASES` binding in `wrangler.jsonc`.
 
-The custom domain `notes.wordtk.com` is declared in `wrangler.jsonc`; wrangler
-creates the DNS record and certificate on first deploy.
+The custom domain is attached in the Cloudflare dashboard (Worker → Settings →
+Domains & Routes) and is deliberately absent from `wrangler.jsonc`: a `routes`
+block would make `wrangler deploy` reconcile — and on a bad run, drop — the live
+domain. `site.config.json` is the only file that knows the origin.
 
 The D1 database is the **shared `common` database** — the free plan allows 10 databases and
 this site only keeps launch counts, so sendtk, codetk, miaomiao-bar and this site live in the

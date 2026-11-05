@@ -70,15 +70,19 @@ npm run dist     # 打包 macOS dmg（arm64 + x64），结束后自动清理旧�
 npm run clean    # 手动清理 release/，只保留当前版本
 ```
 
-打包前请在仓库根目录建一个 `.env`，告诉应用「官网在哪」——「检查更新」与匿名启动
-统计都依赖它（该文件已在 `.gitignore` 里，线上域名不会进入仓库）：
+官网域名只有一个来源：`site/site.config.json` 里的 `siteUrl`。它是**刻意提交进仓库**的
+——公开域名属于标识（不是凭据），写进仓库才能让 clone 下来即可构建出正确的站点与 App。
+所有需要域名的产物都读这一处：canonical、Open Graph、sitemap、robots.txt，以及烘焙进
+App 安装包、供「检查更新」使用的 origin。
+
+Fork 或自托管不必改文件，用环境变量（或本地已 gitignore 的 `.env`）覆盖即可：
 
 ```bash
-SITE_URL=https://your-site.example
+SITE_URL=https://your-site.example npm run dist
 CONTACT_EMAIL=you@example.com   # 可选：关于面板里的邮箱入口，不配置就隐藏
 ```
 
-`npm run dist` 缺少这个变量会直接拒绝打包，避免发出「检查更新永远失败」的版本。
+拿不到域名时 `npm run dist` 会直接拒绝打包，避免发出「检查更新永远失败」的版本。
 
 「检查更新」的请求策略：15 秒超时 + 失败重试一次，并把 DNS 解析顺序钉成 `ipv4first`。
 慢速双栈网络里 IPv6 的 AAAA 记录常常黑洞，浏览器靠 Happy Eyeballs 会立刻回落 IPv4，

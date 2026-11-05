@@ -69,12 +69,17 @@ R2 里的 `releases/latest.json` 描述当前版本，只提供最新版；发�
 
 ```bash
 # 改了 Worker 或静态资源
-npm run deploy
+npm run deploy   # 先生成 SEO 文件，再部署
 
 # 发新版 App（只需上传 dmg 和清单，不用重新部署 Worker）
 cd .. && npm run dist
 cd site && npm run release
 ```
+
+官网域名只有一个来源：`site.config.json` 里的 `siteUrl`。每次部署前 `render-seo.mjs`
+会把该值写进各页面的 canonical / Open Graph、`sitemap.xml` 与 `robots.txt`；
+Fork 时用环境变量 `SITE_URL` 覆盖，不必改文件。注意渲染是**就地改写 HTML**，
+本地部署后提交前先看一眼 `git status`。
 
 `npm run release` 会把 `../release` 里的两个 dmg 传进 `miaomiao` 桶，并重写
 `latest.json`，站点和 App 内的更新检查会在清单 60 秒缓存过期后拿到新版本。
@@ -83,7 +88,9 @@ cd site && npm run release
 桶用的是共用的 `common` 桶（手动建一次，账号下所有项目都复用它，本项目只写
 `miaomiao-notes/` 前缀下的对象），已在 `wrangler.jsonc` 里声明为 `R2_RELEASES` 绑定。
 
-自定义域名 `notes.wordtk.com` 写在 `wrangler.jsonc` 里，首次部署时 wrangler 会自动建 DNS 记录和证书。
+自定义域名在 Cloudflare Dashboard 里绑定（Worker → Settings → Domains & Routes），
+**刻意不写进 `wrangler.jsonc`**：写了 `routes` 会让 `wrangler deploy` 去 reconcile，
+跑坏的 `wrangler deploy` 会把线上域名一起摘掉。域名只由 `site.config.json` 记录。
 
 D1 用的是**共享的 `common` 库** —— 免费额度只给 10 个数据库，而本站只存启动计数，
 所以 sendtk、codetk、miaomiao-bar 与本站共用一个库。表名是 `notes_launches`，索引是

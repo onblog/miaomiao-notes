@@ -3,14 +3,17 @@
  * Render the SEO files for a static site: /sitemap.xml, /robots.txt, and any
  * `__SITE_URL__` placeholder inside the listed HTML files.
  *
- * The production domain is NEVER stored in this repository. It comes from the
- * `SITE_URL` environment variable, which is set by the build environment
- * (Cloudflare Workers Builds) or by a local, git-ignored `.env` file. That keeps
- * the repo usable by anyone who forks it: point SITE_URL at their own domain and
- * everything (canonical links, Open Graph URLs, the sitemap, robots.txt) follows.
+ * The production domain lives in exactly one place: `site.config.json`
+ * (`siteUrl`) next to this package. It is committed on purpose — a public
+ * origin is an identifier, not a secret — so a clone builds the real site with
+ * no extra setup. `SITE_URL` in the environment overrides it for forks.
  *
- * Usage: SITE_URL=https://example.com node scripts/render-seo.mjs
- * Config: seo.config.json (relative to the repo root)
+ * Every HTML file writes `__SITE_URL__` where the origin belongs; this script
+ * replaces that placeholder, so no page carries a hardcoded domain.
+ *
+ * Usage: node scripts/render-seo.mjs                                # site.config.json
+ *        SITE_URL=https://example.com node scripts/render-seo.mjs   # override
+ * Config: seo.config.json (relative to `site/`)
  *   {
  *     "outDir": "public",              // where sitemap.xml and robots.txt go
  *     "html": ["public/index.html"],   // files whose __SITE_URL__ is replaced
@@ -22,13 +25,23 @@ import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '..');
 const CONFIG_PATH = join(ROOT, 'seo.config.json');
+const SITE_CONFIG_PATH = join(ROOT, 'site.config.json');
 
-const siteUrl = (process.env.SITE_URL ?? '').trim().replace(/\/+$/, '');
+/** The committed origin: the single source of truth for every URL this script emits. */
+function configuredSiteUrl() {
+  try {
+    return String(JSON.parse(readFileSync(SITE_CONFIG_PATH, 'utf8')).siteUrl ?? '').trim();
+  } catch {
+    return '';
+  }
+}
+
+/** Environment first so a fork can point at its own domain without editing files. */
+const siteUrl = ((process.env.SITE_URL ?? '').trim() || configuredSiteUrl()).replace(/\/+$/, '');
 if (!siteUrl) {
   console.error(
-    'render-seo: SITE_URL is required.\n' +
-      '  Set it in the build environment (Cloudflare Workers Builds) or in a local .env file.\n' +
-      '  Example: SITE_URL=https://example.com node scripts/render-seo.mjs',
+    'render-seo: no site origin.\n' +
+      '  Set "siteUrl" in site/site.config.json, or pass SITE_URL in the environment.',
   );
   process.exit(1);
 }

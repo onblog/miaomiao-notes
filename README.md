@@ -71,17 +71,23 @@ npm run dist     # package macOS dmg for arm64 and x64 (prunes stale artifacts)
 npm run clean    # keep only the current version in release/
 ```
 
-Add a `.env` at the repo root before packaging so the in-app **Check for updates**
-and the anonymous launch ping know where the site lives (the file is git-ignored,
-so the production domain never enters the repo):
+The public origin lives in exactly one file: `site/site.config.json`
+(`siteUrl`). It is committed on purpose — a public origin is an identifier, not
+a secret — so a clone builds the real site and app with no setup. Everything
+that needs the domain reads that one value: canonical links, Open Graph URLs,
+the sitemap, robots.txt, and the origin baked into the app bundle for
+**Check for updates**.
+
+Forks override it without touching files by setting `SITE_URL` in the
+environment (or in a local, git-ignored `.env`):
 
 ```bash
-SITE_URL=https://your-site.example
+SITE_URL=https://your-site.example npm run dist
 CONTACT_EMAIL=you@example.com   # optional: mail entry in the developer panel, hidden when unset
 ```
 
-`npm run dist` refuses to build without it, so a release can never ship a dead
-update checker.
+`npm run dist` refuses to build when no origin is known, so a release can never
+ship a dead update checker.
 
 The check itself uses a 15s timeout plus one retry and pins the DNS result order to
 `ipv4first`: on slow dual-stack networks an AAAA record is often a blackhole — Chromium falls
