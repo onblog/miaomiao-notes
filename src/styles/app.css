@@ -547,6 +547,149 @@ body.is-resizing {
   color: var(--accent-strong);
 }
 
+/* ------------------------------------------------- 段落 / 格式 下拉菜单 */
+
+.format-menus {
+  display: flex;
+  gap: 2px;
+  margin-right: 2px;
+}
+
+.format-menu__button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  font-weight: 550;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  transition: background 0.14s ease, color 0.14s ease;
+}
+
+.format-menu__button:hover {
+  background: var(--surface-hover);
+  color: var(--accent-strong);
+}
+
+.format-menu__button[aria-expanded='true'] {
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.format-menu__button svg,
+.format-menu__item svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.format-menu__caret {
+  width: 10px;
+  height: 10px;
+  opacity: 0.72;
+}
+
+.format-menu__panel {
+  position: fixed;
+  z-index: 40;
+  width: 250px;
+  padding: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-pop);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  animation: menu-in 0.12s ease;
+}
+
+.format-menu__panel[hidden] {
+  display: none;
+}
+
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.format-menu__group + .format-menu__group {
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.format-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  height: 29px;
+  padding: 0 8px 0 3px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px;
+  color: var(--text-body);
+  text-align: left;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+
+.format-menu__item:hover,
+.format-menu__item:focus-visible {
+  background: var(--surface-hover);
+  outline: none;
+}
+
+.format-menu__item.is-active {
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.format-menu__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+}
+
+.format-menu__check svg {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+
+.format-menu__item.is-active .format-menu__check {
+  opacity: 1;
+}
+
+.format-menu__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.format-menu__hint {
+  flex: none;
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
 /* 视图切换按钮：图标跟随当前视图（只写/全屏预览=眼睛，边写边读=分栏） */
 .view-toggle__split {
   display: none;
@@ -825,6 +968,33 @@ body.is-resizing {
 }
 .preview-host h3 {
   font-size: 1.1em;
+}
+
+/* [TOC] 生成的目录（见 preview.js 的 injectTableOfContents）：一层卡片、
+   缩进跟随标题级别，链接沿用阅读区统一的暖橙。 */
+.preview-host .toc {
+  margin: 0.8em 0 1.2em;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+}
+
+.preview-host .toc__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.preview-host .toc__item {
+  margin: 0.22em 0;
+  padding-left: calc((var(--toc-level) - 1) * 14px);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.preview-host .toc__item a {
+  border-bottom: none;
 }
 .preview-host p,
 .preview-host ul,

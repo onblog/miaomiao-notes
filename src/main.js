@@ -1,6 +1,8 @@
 import 'katex/dist/katex.min.css';
 import './styles/app.css';
 import { createEditor } from './editor.js';
+import { applyFormat, getBlockState } from './format.js';
+import { mountFormatMenus } from './format-menu.js';
 import { renderMarkdown, renderMermaid } from './preview.js';
 import { createMockApi } from './mock-api.js';
 import { loadScroll, saveScroll } from './scroll-memory.js';
@@ -81,6 +83,14 @@ const editor = createEditor({
   onChange: onDocChange,
   onPasteImage: handleImageFiles,
   onScroll: scheduleScrollSave,
+});
+
+/** 写作区标题栏里的「段落 / 格式」菜单；面板固定在 body 上，语言切换靠 data-i18n 自动跟随。 */
+const formatMenus = mountFormatMenus({
+  host: document.getElementById('format-menus'),
+  getState: () => getBlockState(editor.view),
+  onSelect: (command) => runFormatCommand(command),
+  onDismiss: () => editor.focus(),
 });
 
 /* ---------------------------------------------------------------- helpers */
@@ -201,6 +211,100 @@ function askInput({ title, value = '', placeholder = '', confirmLabel = t('dialo
     input.focus();
     input.select();
   });
+}
+
+/* ------------------------------------------------------------ 段落 / 格式 */
+
+function isoDate(date) {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+/**
+ * 执行一条「段落 / 格式」命令。
+ * 预览视图里没有光标上下文，先把视图切回写作，再让命令落到上一次的光标处。
+ * 超链接要额外问一次地址，其余命令都直接改文档。
+ */
+async function runFormatCommand(command) {
+  if (!state.activeNote) return;
+  formatMenus.close();
+  if (state.viewMode === 'preview') applyViewMode('edit');
+
+  if (command === 'link') {
+    const notePath = state.activeNote;
+    const url = await askInput({
+      title: t('menu.linkPrompt'),
+      placeholder: 'https://',
+      confirmLabel: t('dialog.confirm'),
+    });
+    // 弹窗期间换了笔记就放弃，别把链接插到另一篇里
+    if (!url) {
+      editor.focus();
+      return;
+    }
+    if (state.activeNote !== notePath) return;
+    applyFormat(editor.view, 'link', { url, label: t('menu.linkText') });
+    return;
+  }
+
+  if (command === 'frontMatter') {
+    applyFormat(editor.view, command, {
+      title: stemOf(state.activeNote.split('/').pop()),
+      date: isoDate(new Date()),
+    });
+    return;
+  }
+
+  applyFormat(editor.view, command, {
+    tableHeaders: [t('menu.table.col1'), t('menu.table.col2'), t('menu.table.col3')],
+  });
+}
+
+/**
+ * 快捷键映射。这里返回的命令 id 与 format-menu.js 的菜单项一一对应，
+ * 菜单右侧写的组合也必须是这里真正能按出来的，别出现「菜单写着、键盘没绑」。
+ */
+function formatShortcutFor(event) {
+  const { metaKey: meta, ctrlKey: ctrl, altKey: alt, shiftKey: shift } = event;
+  const key = event.key.toLowerCase();
+
+  if (ctrl && meta) {
+    if (key === 'c') return 'codeBlock';
+    if (key === 'b') return 'mathBlock';
+    if (key === 'q') return 'quote';
+    if (key === 'o') return 'ordered';
+    if (key === 'u') return 'bullet';
+    if (key === 'x') return 'task';
+    if (key === 'arrowup') return 'promote';
+    if (key === 'arrowdown') return 'demote';
+    return null;
+  }
+
+  if (meta && !ctrl && !alt) {
+    if (/^[1-6]$/.test(key) && !shift) return `h${key}`;
+    if (!shift && key === 'b') return 'bold';
+    if (!shift && key === 'i') return 'italic';
+    if (!shift && key === 'k') return 'link';
+    if (shift && key === 'x') return 'strike';
+    if (!shift && key === '\\') return 'clearFormat';
+    return null;
+  }
+
+  if (ctrl && !meta) {
+    if (event.key === '`') return 'inlineCode';
+    if (key === 'm') return 'inlineMath';
+  }
+
+  return null;
+}
+
+/** 快捷键只在写作区真正拿到焦点时生效，别抢搜索框和弹窗的按键。 */
+function handleFormatKey(event) {
+  if (!state.activeNote || !editor.view.hasFocus) return;
+  const command = formatShortcutFor(event);
+  if (!command) return;
+  event.preventDefault();
+  void runFormatCommand(command);
 }
 
 /* ---------------------------------------------------------------- render */
@@ -361,6 +465,7 @@ async function refresh() {
 
 async function openNote(path) {
   if (path === state.activeNote) return;
+  formatMenus.close();
   await flushSave();
   // 换篇之前先把当前这篇的阅读位置落盘，否则切走就丢了。
   rememberScroll();
@@ -685,6 +790,8 @@ const VIEW_BUTTON_TITLE = {
 function applyViewMode(mode) {
   const next = VIEW_ORDER.includes(mode) ? mode : 'edit';
   state.viewMode = next;
+  // 视图切换后菜单的位置与可用状态都变了，先收起
+  formatMenus.close();
 
   el.editorHost.hidden = next === 'preview';
   el.previewHost.hidden = next === 'edit';
@@ -1439,14 +1546,17 @@ el.search.addEventListener('input', () => {
 
 window.addEventListener('keydown', (event) => {
   const meta = event.metaKey || event.ctrlKey;
-  if (!meta) return;
-  if (event.key.toLowerCase() === 's') {
+  if (meta && event.key.toLowerCase() === 's') {
     event.preventDefault();
     save();
-  } else if (event.key.toLowerCase() === 'e') {
+    return;
+  }
+  if (meta && event.key.toLowerCase() === 'e') {
     event.preventDefault();
     togglePreview();
+    return;
   }
+  handleFormatKey(event);
 });
 
 window.addEventListener('resize', () => {

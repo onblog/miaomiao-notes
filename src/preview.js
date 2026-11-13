@@ -58,12 +58,59 @@ function drawTaskCheck(html) {
 }
 
 /**
+ * 文件开头的 YAML Front Matter 是元数据（标题、日期、标签），阅读区不铺原文：
+ * 直接渲染的话 `---` 会变成分割线、字段会变正文。写作区仍然能看到并编辑原文。
+ */
+const FRONT_MATTER = /^---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/;
+
+function stripFrontMatter(source) {
+  const text = String(source || '');
+  const match = text.match(FRONT_MATTER);
+  return match ? text.slice(match[0].length) : text;
+}
+
+/**
+ * `[TOC]` 段落换成由渲染后标题生成的目录。markdown-it 没有目录插件，
+ * markdown-it-anchor 已经给每个标题写好 id，这里按渲染结果反查一次即可；
+ * 一个标题都没有时保留原文，让用户知道自己写了什么。
+ */
+function injectTableOfContents(html) {
+  if (!html.includes('[TOC]')) return html;
+
+  const headings = [];
+  const headingPattern = /<h([1-6])([^>]*)>([\s\S]*?)<\/h\1>/g;
+  let match;
+  while ((match = headingPattern.exec(html))) {
+    const id = (match[2].match(/\bid="([^"]+)"/) || [])[1];
+    if (!id) continue;
+    const label = md.utils.escapeHtml(
+      md.utils.unescapeAll(match[3].replace(/<[^>]*>/g, '')).trim(),
+    );
+    if (!label) continue;
+    headings.push({ level: Number(match[1]), id, label });
+  }
+  if (!headings.length) return html;
+
+  const items = headings
+    .map(
+      (heading) =>
+        `<li class="toc__item toc__level-${heading.level}" style="--toc-level:${heading.level}">` +
+        `<a href="#${md.utils.escapeHtml(heading.id)}">${heading.label}</a></li>`,
+    )
+    .join('');
+  const toc = `<nav class="toc" aria-label="${md.utils.escapeHtml(t('menu.toc'))}"><ol class="toc__list">${items}</ol></nav>`;
+
+  return html.replace(/<p>\[TOC\]<\/p>/g, toc);
+}
+
+/**
  * Render markdown to HTML. Raw HTML is disabled, so output is safe to inject.
  * `baseDir` (absolute) rewrites relative image paths to file:// URLs so pasted
  * screenshots render inside the preview.
  */
 export function renderMarkdown(source, baseDir) {
-  const html = drawTaskCheck(md.render(String(source || '')));
+  const body = stripFrontMatter(source);
+  const html = injectTableOfContents(drawTaskCheck(md.render(body)));
   if (!baseDir) return html;
 
   const root = baseDir.replace(/\/+$/, '');

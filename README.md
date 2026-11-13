@@ -42,6 +42,7 @@ Because your notes should be **files**, not someone else's database.
 | --- | --- |
 | Layout | Folder column, note column, editor — native macOS chrome; position, size, zoom and fullscreen are remembered across relaunches |
 | Editing | CodeMirror 6, Markdown syntax highlighting, colored code blocks / inline code / list markers, one-click line wrapping for every code block in the preview, live preview (⌘E), five macOS body fonts (PingFang, Songti, Kaiti, Yuanti, Hiragino) |
+| Formatting | Hand-drawn Paragraph and Format menus: headings, paragraphs, quotes, ordered / bullet / task lists, tables, code and math blocks, rules, table of contents, YAML front matter, bold / italic / strikethrough / inline code / math / links / footnotes. Selection applies to lines, no selection applies to the current line, and every toggle can be undone in one step |
 | Storage | Plain `.md` files; iCloud Drive when available, otherwise `~/Documents` |
 | Sync | macOS iCloud Drive, no extra service |
 | Safety | Atomic writes, `.trash` soft delete, iCloud conflict detection |
