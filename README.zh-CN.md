@@ -59,17 +59,21 @@
 去 **[notes.wordtk.com](https://notes.wordtk.com)** 下载最新版，打开 dmg
 把应用拖进「应用程序」即可。
 
-构建用的是 ad-hoc 签名、没有做 Apple 公证，所以首次打开可能被系统拦一次：点「完成」后到「系统设置 → 隐私与安全性」点「仍要打开」（macOS 14 及更早可右键图标 → 打开）。之后就能正常双击启动。
+构建用的是一次性自签名身份（不是 Apple 开发者证书，也没有做 Apple 公证），所以首次打开可能被系统拦一次：点「完成」后到「系统设置 → 隐私与安全性」点「仍要打开」（macOS 14 及更早可右键图标 → 打开）。这个身份跨版本稳定，升级 App 后已授予的系统权限不会失效。
 
 ## 本地开发
 
 ```bash
 npm install
-npm run dev      # Vite + Electron 热更新
-npm run start    # 构建一次后启动 Electron
-npm run dist     # 打包 macOS dmg（arm64 + x64），结束后自动清理旧版本产物
-npm run clean    # 手动清理 release/，只保留当前版本
+npm run dev            # Vite + Electron 热更新
+npm run start          # 构建一次后启动 Electron
+npm run sign:identity  # 每台构建机执行一次：创建并导入稳定签名身份
+npm run dist           # 打包 arm64 + x64；没证书时回退 ad-hoc 并警告
+npm run dist:release   # 正式发布：缺证书直接失败，不允许 ad-hoc
+npm run clean          # 手动清理 release/，只保留当前版本
 ```
+
+macOS 签名在 `after-pack` 里完成：优先用稳定的自签名身份，只有构建机没导入时才回退 ad-hoc。私钥放在仓库外 `~/.config/miaomiao-notes-signing/`，请自行备份——丢失等于换身份，用户要重新授权一轮。
 
 官网域名只有一个来源：`site/site.config.json` 里的 `siteUrl`。它是**刻意提交进仓库**的
 ——公开域名属于标识（不是凭据），写进仓库才能让 clone 下来即可构建出正确的站点与 App。

@@ -23,7 +23,8 @@ mac:
   # 架构由命令行 --arm64 / --x64 指定，避免两个 dmg 同时制作时卷名冲突
   target:
     - target: dmg
-  # 签名交给 afterPack hook 做 ad-hoc（electron-builder 不认 identity: "-"）
+  # 签名交给 afterPack hook：优先稳定自签名身份，缺证书才回退 ad-hoc
+  # （electron-builder 不认 identity: "-"）
   identity: null
   hardenedRuntime: false
   gatekeeperAssess: false

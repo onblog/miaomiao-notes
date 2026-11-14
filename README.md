@@ -59,18 +59,26 @@ Because your notes should be **files**, not someone else's database.
 Download the latest build from **[notes.wordtk.com](https://notes.wordtk.com)**,
 open the dmg and drag the app into Applications.
 
-The build is ad-hoc signed, not notarised, so the first launch needs a right click →
-**Open**. After that it starts normally.
+The build uses a one-time self-signed identity, not an Apple Developer certificate and
+not notarised, so the first launch may need a right click → **Open**. The identity stays
+the same across releases, so macOS permission grants survive app updates.
 
 ## Development
 
 ```bash
 npm install
-npm run dev      # Vite + Electron with hot reload
-npm run start    # build once, then launch Electron
-npm run dist     # package macOS dmg for arm64 and x64 (prunes stale artifacts)
-npm run clean    # keep only the current version in release/
+npm run dev            # Vite + Electron with hot reload
+npm run start          # build once, then launch Electron
+npm run sign:identity  # once per build machine: create/import the stable signing identity
+npm run dist           # package arm64 + x64; falls back to ad-hoc when the identity is missing
+npm run dist:release   # release build: fails instead of falling back to ad-hoc
+npm run clean          # keep only the current version in release/
 ```
+
+macOS builds are signed in `after-pack`: the stable self-signed identity is preferred,
+ad-hoc is only a fallback for machines without it. The private key lives outside the
+repository in `~/.config/miaomiao-notes-signing/`; back it up, because losing it means a
+new code identity and one more round of permission grants.
 
 The public origin lives in exactly one file: `site/site.config.json`
 (`siteUrl`). It is committed on purpose — a public origin is an identifier, not
