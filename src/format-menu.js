@@ -14,16 +14,18 @@ const CHECK_ICON =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m2.6 8.4 3.4 3.3 7.4-7.3" /></svg>';
 
 /**
- * 两个菜单按钮的图标：¶（段落）与 B（格式）。
+ * 两个菜单按钮的图标：方块文本（段落）与 B（格式）。
  * 都按 24 的 viewBox 手绘成线性图标，和标题栏其余按钮同一套笔画；
- * 格式刻意用 B 而不是 Aa —— 旁边的语言按钮已经是「文A」，两个 A 会撞。
+ * 段落用「文字块」而不是 ¶：这个菜单管的是标题、列表、引用、代码块这一整层结构，
+ * 外框比段落符号更直白；格式刻意用 B 而不是 Aa —— 语言按钮已经是「文A」，两个 A 会撞。
  */
 const BUTTON_ICONS = {
   paragraph:
     '<svg viewBox="0 0 24 24" aria-hidden="true">' +
-    '<path d="M10.5 4v16" />' +
-    '<path d="M14.5 4v16" />' +
-    '<path d="M16.5 4H7a4.5 4.5 0 0 0 0 9h3.5" />' +
+    '<rect x="3.5" y="4" width="17" height="16" rx="3.5" />' +
+    '<path d="M8 9h8" />' +
+    '<path d="M8 13h8" />' +
+    '<path d="M8 17h5" />' +
     '</svg>',
   format:
     '<svg viewBox="0 0 24 24" aria-hidden="true">' +
