@@ -35,6 +35,8 @@ const messages = {
 
     'menu.paragraph': '段落',
     'menu.format': '格式',
+    'menu.paragraph.title': '段落与块格式',
+    'menu.format.title': '行内格式',
     'menu.paragraphItem': '段落',
     'menu.h1': '一级标题',
     'menu.h2': '二级标题',
@@ -238,6 +240,8 @@ const messages = {
 
     'menu.paragraph': 'Paragraph',
     'menu.format': 'Format',
+    'menu.paragraph.title': 'Paragraph & block format',
+    'menu.format.title': 'Inline formatting',
     'menu.paragraphItem': 'Paragraph',
     'menu.h1': 'Heading 1',
     'menu.h2': 'Heading 2',

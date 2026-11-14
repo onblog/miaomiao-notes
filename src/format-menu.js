@@ -12,8 +12,26 @@
 
 const CHECK_ICON =
   '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m2.6 8.4 3.4 3.3 7.4-7.3" /></svg>';
-const CARET_ICON =
-  '<svg class="format-menu__caret" viewBox="0 0 12 12" aria-hidden="true"><path d="m2.4 4.4 3.6 3.6 3.6-3.6" /></svg>';
+
+/**
+ * 两个菜单按钮的图标：¶（段落）与 B（格式）。
+ * 都按 24 的 viewBox 手绘成线性图标，和标题栏其余按钮同一套笔画；
+ * 格式刻意用 B 而不是 Aa —— 旁边的语言按钮已经是「文A」，两个 A 会撞。
+ */
+const BUTTON_ICONS = {
+  paragraph:
+    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M10.5 4v16" />' +
+    '<path d="M14.5 4v16" />' +
+    '<path d="M16.5 4H7a4.5 4.5 0 0 0 0 9h3.5" />' +
+    '</svg>',
+  format:
+    '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+    '<path d="M8 4.5v15" />' +
+    '<path d="M8 4.5h4.2a3.6 3.6 0 0 1 0 7.2H8" />' +
+    '<path d="M8 11.7h4.8a3.9 3.9 0 0 1 0 7.8H8" />' +
+    '</svg>',
+};
 
 /**
  * 菜单定义。hint 只写真正绑定到键盘的快捷键，
@@ -23,6 +41,8 @@ const MENU_CONFIG = [
   {
     key: 'paragraph',
     labelKey: 'menu.paragraph',
+    titleKey: 'menu.paragraph.title',
+    icon: 'paragraph',
     sections: [
       [
         { id: 'h1', labelKey: 'menu.h1', hint: '⌘1', active: (block) => block.heading === 1 },
@@ -72,6 +92,8 @@ const MENU_CONFIG = [
   {
     key: 'format',
     labelKey: 'menu.format',
+    titleKey: 'menu.format.title',
+    icon: 'format',
     sections: [
       [
         { id: 'bold', labelKey: 'menu.bold', hint: '⌘B' },
@@ -162,12 +184,12 @@ export function mountFormatMenus({ host, getState, onSelect, onDismiss }) {
 
     const button = document.createElement('button');
     button.type = 'button';
-    button.className = 'format-menu__button';
+    button.className = 'icon-button format-menu__button';
     button.setAttribute('aria-haspopup', 'menu');
     button.setAttribute('aria-expanded', 'false');
-    button.dataset.i18nTitle = config.labelKey;
+    button.dataset.i18nTitle = config.titleKey;
     button.dataset.i18nAria = config.labelKey;
-    button.innerHTML = `<span data-i18n="${config.labelKey}"></span>${CARET_ICON}`;
+    button.innerHTML = BUTTON_ICONS[config.icon];
 
     const panel = document.createElement('div');
     panel.className = 'format-menu__panel';

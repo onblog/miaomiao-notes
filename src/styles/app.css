@@ -555,43 +555,19 @@ body.is-resizing {
   margin-right: 2px;
 }
 
-.format-menu__button {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  height: 30px;
-  padding: 0 7px;
-  border-radius: var(--radius-sm);
-  font-size: 12.5px;
-  font-weight: 550;
-  letter-spacing: 0.01em;
-  color: var(--text-muted);
-  transition: background 0.14s ease, color 0.14s ease;
-}
-
-.format-menu__button:hover {
-  background: var(--surface-hover);
-  color: var(--accent-strong);
-}
-
+/* 按钮本身复用 .icon-button 的 30×30 度量，这里只补「菜单已展开」的落色；
+   纯图标靠 tooltip 说明用途，菜单里的每一项已经是完整命令名。 */
 .format-menu__button[aria-expanded='true'] {
   background: var(--accent-soft);
   color: var(--accent-strong);
 }
 
-.format-menu__button svg,
 .format-menu__item svg {
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.format-menu__caret {
-  width: 10px;
-  height: 10px;
-  opacity: 0.72;
 }
 
 .format-menu__panel {
