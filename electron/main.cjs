@@ -484,7 +484,7 @@ function registerIpc() {
 
   handle('vault:choose', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
-      title: '选择笔记库位置',
+      title: currentMenuText().chooseVault,
       properties: ['openDirectory', 'createDirectory'],
       defaultPath: vaultDir,
     });
@@ -629,17 +629,18 @@ function registerIpc() {
         resolve(value);
       };
 
+      const m = currentMenuText();
       const menu = Menu.buildFromTemplate([
-        { label: '重命名', click: () => done('rename') },
+        { label: m.rename, click: () => done('rename') },
         {
-          label: '在 Finder 中显示',
+          label: m.reveal,
           click: () => {
             shell.showItemInFolder(target);
             done(null);
           },
         },
         { type: 'separator' },
-        { label: '删除', click: () => done('delete') },
+        { label: m.delete, click: () => done('delete') },
       ]);
 
       menu.popup({ window: mainWindow, callback: () => done(null) });
@@ -652,7 +653,7 @@ function registerIpc() {
       buttons: [confirmLabel || currentMenuText().ok, currentMenuText().cancel],
       defaultId: 0,
       cancelId: 1,
-      title: title || '喵喵笔记',
+      title: title || currentMenuText().app,
       message: message || '',
       detail: detail || '',
     });
@@ -673,7 +674,10 @@ const MENU_TEXT = {
     quit: '退出喵喵笔记',
     file: '文件',
     newNote: '新建笔记',
+    rename: '重命名',
+    delete: '删除',
     reveal: '在 Finder 中显示',
+    chooseVault: '选择笔记库位置',
     close: '关闭窗口',
     edit: '编辑',
     undo: '撤销',
@@ -705,7 +709,10 @@ const MENU_TEXT = {
     quit: 'Quit Miaomiao Notes',
     file: 'File',
     newNote: 'New Note',
+    rename: 'Rename',
+    delete: 'Delete',
     reveal: 'Show in Finder',
+    chooseVault: 'Choose Notes Folder',
     close: 'Close Window',
     edit: 'Edit',
     undo: 'Undo',
@@ -805,6 +812,14 @@ function buildMenu() {
     },
   ];
 
+  app.setAboutPanelOptions({
+    applicationName: m.app,
+    applicationVersion: app.getVersion(),
+    copyright: '© 2026 Martin',
+    credits: CONTACT_EMAIL ? `Martin\n${CONTACT_EMAIL}` : 'Martin',
+    authors: ['Martin'],
+  });
+
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
@@ -813,14 +828,6 @@ app.setName('喵喵笔记');
 app.whenReady().then(() => {
   // 让系统登录项与应用内的开关保持一致（自愈：外部被关掉时按设置补回）
   syncLaunchAtLogin(settings.read().launchAtLogin);
-  app.setAboutPanelOptions({
-    applicationName: '喵喵笔记',
-    applicationVersion: app.getVersion(),
-    copyright: '© 2026 Martin',
-    credits: CONTACT_EMAIL ? `Martin\n${CONTACT_EMAIL}` : 'Martin',
-    authors: ['Martin'],
-  });
-
   bootServices();
   registerIpc();
   buildMenu();
